@@ -1,0 +1,5 @@
+<resources>
+    <string name="app_name">Home Connect Android</string>
+    <string name="start_program">Start program</string>
+    <string name="degree_celsius">°C</string>
+</resources>

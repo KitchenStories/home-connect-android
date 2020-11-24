@@ -1,0 +1,2 @@
+include ':app', 'home-connect'
+rootProject.name = "Home Connect Android"
