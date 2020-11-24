@@ -1,6 +1,9 @@
 buildscript {
     ext.kotlin_version = "1.4.0"
 
+    // see https://github.com/dcendents/android-maven-gradle-plugin/releases
+    ext.android_maven_gradle_plugin_version = "2.1"
+
     repositories {
         google()
         mavenCentral()
@@ -10,6 +13,7 @@ buildscript {
     dependencies {
         classpath 'com.android.tools.build:gradle:4.1.1'
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
+        classpath "com.github.dcendents:android-maven-gradle-plugin:$android_maven_gradle_plugin_version"
 
         // optionals
         classpath "com.github.ben-manes:gradle-versions-plugin:0.28.0"
