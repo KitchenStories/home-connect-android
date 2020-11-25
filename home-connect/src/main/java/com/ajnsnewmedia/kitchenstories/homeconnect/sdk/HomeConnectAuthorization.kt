@@ -7,7 +7,6 @@ import android.webkit.WebResourceError
 import android.webkit.WebResourceRequest
 import android.webkit.WebView
 import android.webkit.WebViewClient
-import com.ajnsnewmedia.kitchenstories.homeconnect.HomeConnectApi
 import com.ajnsnewmedia.kitchenstories.homeconnect.model.auth.HomeConnectClientCredentials
 import com.ajnsnewmedia.kitchenstories.homeconnect.model.auth.toHomeConnectAccessToken
 import com.ajnsnewmedia.kitchenstories.homeconnect.util.DefaultErrorHandler
@@ -28,19 +27,16 @@ internal object AuthorizationDependencies {
 }
 
 // TODO move testable code without web view dependency somewhere else and write tests
-class HomeConnectAuthorization(private val onRequestAccessTokenStarted: () -> Unit) {
+// TODO make sure that no memory leaks happen here
+object HomeConnectAuthorization {
 
-    private val homeConnectApi: HomeConnectApi by lazy {
-        try {
-            AuthorizationDependencies.homeConnectApiFactory.getHomeConnectApi()
-        } catch (e: Throwable) {
-            throw HomeConnectError.NotInitialized
-        }
-    }
-
-    suspend fun authorize(webView: WebView) {
+    /**
+     * @param onRequestAccessTokenStarted This callback will be triggered when the user has given his consent and the request for the initial
+     * access token is ongoing. Use this to e.g. show a loading indicator to keep the user informed about the progress.
+     */
+    suspend fun authorize(webView: WebView, onRequestAccessTokenStarted: () -> Unit) {
         val authorizationCode = initWebAuthorization(webView)
-        loadAccessToken(authorizationCode)
+        loadAccessToken(authorizationCode, onRequestAccessTokenStarted)
     }
 
     @SuppressLint("SetJavaScriptEnabled")
@@ -78,10 +74,10 @@ class HomeConnectAuthorization(private val onRequestAccessTokenStarted: () -> Un
         }
     }
 
-    private suspend fun loadAccessToken(authorizationCode: String) {
+    private suspend fun loadAccessToken(authorizationCode: String, onRequestAccessTokenStarted: () -> Unit) {
         onRequestAccessTokenStarted()
         try {
-            val tokenResponse = homeConnectApi.postAuthorizationCode(
+            val tokenResponse = AuthorizationDependencies.homeConnectApiFactory.getHomeConnectApi().postAuthorizationCode(
                     authorizationCode = authorizationCode,
                     clientId = AuthorizationDependencies.credentials.clientId,
                     clientSecret = AuthorizationDependencies.credentials.clientSecret,

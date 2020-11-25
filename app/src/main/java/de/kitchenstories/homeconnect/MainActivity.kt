@@ -40,8 +40,6 @@ class MainActivity : AppCompatActivity(), CoroutineScope by MainScope() {
 
     private lateinit var homeConnectClient: HomeConnectClient
 
-    private var homeConnectAuthorization: HomeConnectAuthorization? = null
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
@@ -52,10 +50,9 @@ class MainActivity : AppCompatActivity(), CoroutineScope by MainScope() {
         if (homeConnectSecretsStore.accessToken != null) {
             showOvenControls()
         } else {
-            homeConnectAuthorization = HomeConnectAuthorization(onRequestAccessTokenStarted = {})
             launch {
                 try {
-                    homeConnectAuthorization?.authorize(homeConnectAuthenticateWebview)
+                    HomeConnectAuthorization.authorize(homeConnectAuthenticateWebview, onRequestAccessTokenStarted = {})
                     showOvenControls()
                 } catch (e: Throwable) {
                     Log.e("SampleApp", "authorization failed", e)
@@ -67,7 +64,6 @@ class MainActivity : AppCompatActivity(), CoroutineScope by MainScope() {
     override fun onDestroy() {
         super.onDestroy()
         cancel()
-        homeConnectAuthorization = null
     }
 
     private fun showOvenControls() {
