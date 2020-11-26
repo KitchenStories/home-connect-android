@@ -14,6 +14,8 @@ interface HomeConnectClient {
 
     suspend fun getAvailablePrograms(forApplianceId: String): List<AvailableProgram>
 
+    fun logOutUser()
+
     suspend fun startProgram(forApplianceId: String, program: StartProgramRequest)
 
 }

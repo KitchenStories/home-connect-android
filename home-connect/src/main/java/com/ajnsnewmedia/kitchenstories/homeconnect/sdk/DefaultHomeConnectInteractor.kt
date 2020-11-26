@@ -44,6 +44,10 @@ internal class DefaultHomeConnectInteractor(
         }
     }
 
+    override fun logOutUser() {
+        homeConnectSecretsStore.accessToken = null
+    }
+
     override suspend fun startProgram(forApplianceId: String, program: StartProgramRequest) {
         try {
             homeConnectApi.startProgram(forApplianceId, HomeConnectApiRequest(program))
