@@ -1,4 +1,4 @@
-# HomeConnect Api wrapper for Android
+# Work in Progress: HomeConnect Api wrapper for Android
 
 ## Sample app
 
@@ -10,6 +10,7 @@ For the sample app, copy your cliendId and cliendSecret from developer.home-conn
 clientId="<insert-your-clientId>"
 clientSecret="<insert-your-clientSecred>"
 ```
+[![November 2020 Atatus](https://img.youtube.com/vi/qyP3QINvi14/0.jpg)](https://www.youtube.com/watch?v=qyP3QINvi14)
 
 ## How to use
 
