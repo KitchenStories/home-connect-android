@@ -101,12 +101,7 @@ class HomeConnectInterceptorTest {
         whenever(homeConnectSecretsStore.accessToken).thenReturn(null)
         mockServer.enqueue(MockResponse())
 
-        try {
-            client.newCall(testRequest()).execute()
-            throw AssertionError("No exception has been thrown")
-        } catch (e: Throwable) {
-            assertTrue(e is HomeConnectInternalError)
-        }
+        verifyThrowing(action = { client.newCall(testRequest()).execute() }, verifyError = { assertTrue(it is HomeConnectInternalError) })
     }
 
     @Test
@@ -154,14 +149,11 @@ class HomeConnectInterceptorTest {
         // mock failing access token request
         mockServer.enqueue(MockResponse().setResponseCode(400))
 
-        try {
-            client.newCall(testRequest()).execute()
-            throw AssertionError("No exception has been thrown")
-        } catch (e: Throwable) {
-            assertTrue(e is HomeConnectInternalError)
-            assertEquals((e as HomeConnectInternalError).type, HomeConnectInternalError.Type.StaleAuthorization)
+        verifyThrowing(action = { client.newCall(testRequest()).execute() }, verifyError = { error ->
+            assertTrue(error is HomeConnectInternalError)
+            assertEquals((error as HomeConnectInternalError).type, HomeConnectInternalError.Type.StaleAuthorization)
             verify(homeConnectSecretsStore).accessToken = null
-        }
+        })
     }
 
     @Test
@@ -172,14 +164,11 @@ class HomeConnectInterceptorTest {
         // mock failing access token request
         mockServer.enqueue(MockResponse().setResponseCode(403))
 
-        try {
-            client.newCall(testRequest()).execute()
-            throw AssertionError("No exception has been thrown")
-        } catch (e: Throwable) {
-            assertTrue(e is HomeConnectInternalError)
-            assertEquals((e as HomeConnectInternalError).type, HomeConnectInternalError.Type.StaleAuthorization)
+        verifyThrowing(action = { client.newCall(testRequest()).execute() }, verifyError = { error ->
+            assertTrue(error is HomeConnectInternalError)
+            assertEquals((error as HomeConnectInternalError).type, HomeConnectInternalError.Type.StaleAuthorization)
             verify(homeConnectSecretsStore).accessToken = null
-        }
+        })
     }
 
     @Test
