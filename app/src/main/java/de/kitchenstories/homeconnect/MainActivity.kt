@@ -13,6 +13,8 @@ import androidx.core.view.isVisible
 import com.ajnsnewmedia.kitchenstories.homeconnect.model.appliances.HomeAppliance
 import com.ajnsnewmedia.kitchenstories.homeconnect.model.appliances.HomeApplianceType
 import com.ajnsnewmedia.kitchenstories.homeconnect.model.auth.HomeConnectClientCredentials
+import com.ajnsnewmedia.kitchenstories.homeconnect.model.programs.ProgramKey
+import com.ajnsnewmedia.kitchenstories.homeconnect.model.programs.ProgramOptionKey
 import com.ajnsnewmedia.kitchenstories.homeconnect.model.programs.StartProgramOption
 import com.ajnsnewmedia.kitchenstories.homeconnect.model.programs.StartProgramRequest
 import com.ajnsnewmedia.kitchenstories.homeconnect.sdk.HomeConnectAuthorization
@@ -79,14 +81,7 @@ class MainActivity : AppCompatActivity(), CoroutineScope by MainScope() {
                 availablePrograms.forEach { program ->
                     val programButton = Button(this@MainActivity)
                     ovenControls.addView(programButton)
-                    programButton.text = when (program.key) {
-                        "Cooking.Oven.Program.HeatingMode.PreHeating" -> ProgramNames.PREHEAT.title
-                        "Cooking.Oven.Program.HeatingMode.HotAir" -> ProgramNames.HOT_AIR.title
-                        "Cooking.Oven.Program.HeatingMode.TopBottomHeating" -> ProgramNames.TOP_BOTTOM_HEATING.title
-                        "Cooking.Oven.Program.HeatingMode.PizzaSetting" -> ProgramNames.PIZZA_SETTING.title
-                        else -> program.key
-
-                    }
+                    programButton.text = program.key.name
                     programButton.setOnClickListener {
                         startProgram(oven, program.key)
                     }
@@ -96,7 +91,7 @@ class MainActivity : AppCompatActivity(), CoroutineScope by MainScope() {
         }
     }
 
-    private fun startProgram(oven: HomeAppliance, program: String) {
+    private fun startProgram(oven: HomeAppliance, program: ProgramKey) {
         val enteredTemperature = temperatureInput.text.toString().toIntOrNull()
         if (enteredTemperature == null) {
             Toast.makeText(this, "Please enter a temperature", Toast.LENGTH_LONG).show()
@@ -110,7 +105,7 @@ class MainActivity : AppCompatActivity(), CoroutineScope by MainScope() {
                     key = program,
                     options = listOf(
                         StartProgramOption(
-                            key = "Cooking.Oven.Option.SetpointTemperature",
+                            key = ProgramOptionKey.SetpointTemperature,
                             value = enteredTemperature,
                             unit = "°C",
                         )

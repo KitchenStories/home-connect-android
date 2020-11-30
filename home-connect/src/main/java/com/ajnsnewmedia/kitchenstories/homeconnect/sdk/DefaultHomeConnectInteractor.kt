@@ -53,6 +53,7 @@ internal class DefaultHomeConnectInteractor(
             homeConnectApi.startProgram(forApplianceId, HomeConnectApiRequest(program))
         } catch (e: Throwable) {
             Log.e("HomeConnectApi", "starting a program failed", e)
+            errorHandler.handle(e)
         }
     }
 

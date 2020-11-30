@@ -6,7 +6,7 @@ import com.squareup.moshi.JsonClass
 data class AvailableProgramsData(val programs: List<AvailableProgram>)
 
 @JsonClass(generateAdapter = true)
-data class AvailableProgram(val key: String, val constraints: ProgramConstraint)
+data class AvailableProgram(val key: ProgramKey, val constraints: ProgramConstraint)
 
 @JsonClass(generateAdapter = true)
 data class ProgramConstraint(val execution: ProgramExecutionConstraint)

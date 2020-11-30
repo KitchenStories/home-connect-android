@@ -5,5 +5,5 @@ import com.squareup.moshi.JsonClass
 @JsonClass(generateAdapter = false)
 enum class HomeApplianceType {
     Oven,
-    unknown,
+    Unknown,
 }
