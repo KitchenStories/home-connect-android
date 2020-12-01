@@ -14,6 +14,7 @@ import com.ajnsnewmedia.kitchenstories.homeconnect.util.DefaultTimeProvider
 import com.ajnsnewmedia.kitchenstories.homeconnect.util.HomeConnectApiFactory
 import com.ajnsnewmedia.kitchenstories.homeconnect.util.HomeConnectError
 import kotlinx.coroutines.suspendCancellableCoroutine
+import java.net.URLDecoder
 import kotlin.coroutines.resume
 import kotlin.coroutines.resumeWithException
 
@@ -46,11 +47,13 @@ object HomeConnectAuthorization {
             override fun onPageFinished(view: WebView?, url: String?) {
                 super.onPageFinished(view, url)
                 if (url != null && url.startsWith("https://apiclient.home-connect.com/o2c.html")) {
-                    val authorizationCode = Uri.parse(url).parseAuthorizationCode()
+                    val uri = Uri.parse(url)
+                    val authorizationCode = uri.parseAuthorizationCode()
                     if (authorizationCode != null) {
                         continuation.resume(authorizationCode)
                     } else {
-                        continuation.resumeWithException(HomeConnectError.Unspecified("Couldn't parse authorization code", null))
+                        val errorDescription = uri.parseErrorDescription()
+                        continuation.resumeWithException(HomeConnectError.Unspecified(errorDescription, null))
                     }
                 }
             }
@@ -91,8 +94,14 @@ object HomeConnectAuthorization {
 
     /**
      * Parses the authorization code from the redirection url after the user has logged in and authorized the app
-     * example url: //https://apiclient.home-connect.com/o2c.html?code=very_nice_auth_code=3D&grant_type=authorization_code
+     * example url: https://apiclient.home-connect.com/o2c.html?code=very_nice_auth_code=3D&grant_type=authorization_code
      */
     private fun Uri.parseAuthorizationCode() = this.getQueryParameter("code")
+
+    /**
+     * Parses the error description code from the redirection url after a redirect to an error url happens
+     * example url: https://apiclient.home-connect.com/o2c.html?error=invalid_scope&error_description=nice+error+description
+     */
+    private fun Uri.parseErrorDescription() = URLDecoder.decode(this.getQueryParameter("error_description"), "UTF-8")
 
 }
