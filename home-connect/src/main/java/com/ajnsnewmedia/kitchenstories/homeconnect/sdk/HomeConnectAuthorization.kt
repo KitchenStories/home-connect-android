@@ -2,18 +2,24 @@ package com.ajnsnewmedia.kitchenstories.homeconnect.sdk
 
 import android.annotation.SuppressLint
 import android.net.Uri
+import android.util.Log
 import android.webkit.WebChromeClient
-import android.webkit.WebResourceError
 import android.webkit.WebResourceRequest
+import android.webkit.WebResourceResponse
 import android.webkit.WebView
 import android.webkit.WebViewClient
+import com.ajnsnewmedia.kitchenstories.homeconnect.model.auth.AuthorizationErrorResponse
 import com.ajnsnewmedia.kitchenstories.homeconnect.model.auth.HomeConnectClientCredentials
 import com.ajnsnewmedia.kitchenstories.homeconnect.model.auth.toHomeConnectAccessToken
+import com.ajnsnewmedia.kitchenstories.homeconnect.model.jsonadapters.HomeConnectMoshiBuilder
 import com.ajnsnewmedia.kitchenstories.homeconnect.util.DefaultErrorHandler
 import com.ajnsnewmedia.kitchenstories.homeconnect.util.DefaultTimeProvider
 import com.ajnsnewmedia.kitchenstories.homeconnect.util.HomeConnectApiFactory
 import com.ajnsnewmedia.kitchenstories.homeconnect.util.HomeConnectError
+import com.squareup.moshi.JsonReader
 import kotlinx.coroutines.suspendCancellableCoroutine
+import okio.Buffer
+import java.io.InputStream
 import java.net.URLDecoder
 import kotlin.coroutines.resume
 import kotlin.coroutines.resumeWithException
@@ -58,11 +64,13 @@ object HomeConnectAuthorization {
                 }
             }
 
-            override fun onReceivedError(view: WebView?, request: WebResourceRequest?, error: WebResourceError?) {
-                super.onReceivedError(view, request, error)
-                // TODO error handling!
+            override fun onReceivedHttpError(view: WebView?, request: WebResourceRequest?, errorResponse: WebResourceResponse?) {
+                super.onReceivedHttpError(view, request, errorResponse)
+                if (request != null && request.isForMainFrame) {
+                    val errorDescription = errorResponse?.data?.parseErrorDescription()
+                    continuation.resumeWithException(HomeConnectError.Unspecified(errorDescription, null))
+                }
             }
-
         }
         webView.webChromeClient = object : WebChromeClient() {}
 
@@ -99,9 +107,27 @@ object HomeConnectAuthorization {
     private fun Uri.parseAuthorizationCode() = this.getQueryParameter("code")
 
     /**
-     * Parses the error description code from the redirection url after a redirect to an error url happens
+     * Parses the error description from the redirection url after a redirect to an error url happens
      * example url: https://apiclient.home-connect.com/o2c.html?error=invalid_scope&error_description=nice+error+description
      */
-    private fun Uri.parseErrorDescription() = URLDecoder.decode(this.getQueryParameter("error_description"), "UTF-8")
+    private fun Uri.parseErrorDescription() = this.getQueryParameter("error_description")?.let { URLDecoder.decode(it, "UTF-8") }
+
+    /**
+     * Parses the error description from the json response after an HTTP error is encountered during web authorization flow
+     */
+    private fun InputStream.parseErrorDescription(): String? {
+        this.use { inputStream ->
+            val jsonReader = JsonReader.of((Buffer().readFrom(inputStream)))
+            jsonReader.use {
+                val errorResponse = try {
+                    HomeConnectMoshiBuilder.moshiInstance.adapter(AuthorizationErrorResponse::class.java).fromJson(it)
+                } catch (e: Exception) {
+                    Log.e("HomeConnect", "could not parse error json after encountering an error in the web flow", e)
+                    null
+                }
+                return errorResponse?.description
+            }
+        }
+    }
 
 }
