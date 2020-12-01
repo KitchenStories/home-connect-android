@@ -55,7 +55,7 @@ class HomeConnectAuthorization {
         if (savedState?.authorizationCode != null) {
             loadAccessToken(savedState.authorizationCode, onRequestAccessTokenStarted)
         } else {
-            val authorizationCode = initWebAuthorization(webView, savedInstanceState)
+            val authorizationCode = initWebAuthorization(webView, savedState?.webViewState)
             loadAccessToken(authorizationCode, onRequestAccessTokenStarted)
         }
     }
