@@ -36,11 +36,13 @@ class MainActivity : AppCompatActivity(), CoroutineScope by MainScope() {
     private lateinit var ovenControls: ViewGroup
     private lateinit var temperatureInput: EditText
     private val credentials = HomeConnectClientCredentials(
-        clientId = BuildConfig.homeConnectClientId,
-        clientSecret = BuildConfig.homeConnectClientSecret,
+            clientId = BuildConfig.homeConnectClientId,
+            clientSecret = BuildConfig.homeConnectClientSecret,
     )
 
     private lateinit var homeConnectClient: HomeConnectClient
+
+    private var homeConnectAuthorization: HomeConnectAuthorization? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -54,7 +56,10 @@ class MainActivity : AppCompatActivity(), CoroutineScope by MainScope() {
         } else {
             launch {
                 try {
-                    HomeConnectAuthorization.authorize(homeConnectAuthenticateWebview, onRequestAccessTokenStarted = {})
+                    homeConnectAuthorization = HomeConnectAuthorization()
+                    homeConnectAuthorization?.authorize(homeConnectAuthenticateWebview,
+                                                        savedInstanceState,
+                                                        onRequestAccessTokenStarted = {})
                     showOvenControls()
                 } catch (e: Throwable) {
                     Log.e("SampleApp", "authorization failed", e)
@@ -63,9 +68,15 @@ class MainActivity : AppCompatActivity(), CoroutineScope by MainScope() {
         }
     }
 
+    override fun onSaveInstanceState(outState: Bundle) {
+        homeConnectAuthorization?.saveInstanceState(homeConnectAuthenticateWebview, outState)
+        super.onSaveInstanceState(outState)
+    }
+
     override fun onDestroy() {
         super.onDestroy()
         cancel()
+        homeConnectAuthorization = null
     }
 
     private fun showOvenControls() {
@@ -100,17 +111,15 @@ class MainActivity : AppCompatActivity(), CoroutineScope by MainScope() {
 
         launch {
             homeConnectClient.startProgram(
-                forApplianceId = oven.id,
-                program = StartProgramRequest(
-                    key = program,
-                    options = listOf(
-                        StartProgramOption(
-                            key = ProgramOptionKey.SetpointTemperature,
-                            value = enteredTemperature,
-                            unit = "°C",
-                        )
+                    forApplianceId = oven.id,
+                    program = StartProgramRequest(
+                            key = program,
+                            options = listOf(StartProgramOption(
+                                    key = ProgramOptionKey.SetpointTemperature,
+                                    value = enteredTemperature,
+                                    unit = "°C",
+                            )),
                     ),
-                ),
             )
         }
     }

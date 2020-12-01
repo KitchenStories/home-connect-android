@@ -55,18 +55,32 @@ Example usage with [Lifecycle from architecture components](https://developer.an
 ```
 class HomeConnectAuthorizationFragment : Fragment(R.layout.fragment_home_connect_authorization) {
 
+    private var homeConnectAuthorization: HomeConnectAuthorization? = null
+
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         val webView = view.findViewById<WebView>(R.id.web_view)
         viewLifecycleOwner.lifecycleScope.launch {
             try {
-                HomeConnectAuthorization.authorize(webView, onRequestAccessTokenStarted = ::showLoadingIndicator)
+                homeConnectAuthorization = HomeConnectAuthorization()
+                homeConnectAuthorization.authorize(webView, savedInstanceState, onRequestAccessTokenStarted = ::showLoadingIndicator)
                 hideLoadingIndicator()
                 // user is authorized now
             } catch (e: Exception) {
                 e.printStackTrace()
             }
         }
+    }
+
+    override fun onSaveInstanceState(outState: Bundle) {
+        val webView = requireView().findViewById<WebView>(R.id.web_view)
+        homeConnectAuthorization?.saveInstanceState(webView, outState)
+        super.onSaveInstanceState(outState)
+    }
+
+    override fun onDestroyView() {
+        super.onDestroyView()
+        homeConnectAuthorization = null
     }
 
 }
