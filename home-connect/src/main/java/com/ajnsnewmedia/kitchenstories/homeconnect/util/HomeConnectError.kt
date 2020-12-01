@@ -1,6 +1,6 @@
 package com.ajnsnewmedia.kitchenstories.homeconnect.util
 
-sealed class HomeConnectError(message: String? = null, cause: Throwable? = null) : Throwable(message, cause) {
+sealed class HomeConnectError(message: String? = null, cause: Throwable? = null) : Exception(message, cause) {
 
     object Network : HomeConnectError("Network error encountered")
 
