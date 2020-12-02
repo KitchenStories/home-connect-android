@@ -81,7 +81,8 @@ class HomeConnectAuthorization {
                                 continuation.resume(authorizationCode)
                             } else {
                                 val errorDescription = uri.parseErrorDescription()
-                                continuation.resumeWithException(HomeConnectError.Unspecified(errorDescription, null))
+                                val error = uri.parseError()
+                                continuation.resumeWithException(HomeConnectError.getExceptionFromError(error, errorDescription, cause = null))
                             }
                         }
                     }
@@ -138,6 +139,8 @@ class HomeConnectAuthorization {
      * example url: https://apiclient.home-connect.com/o2c.html?error=invalid_scope&error_description=nice+error+description
      */
     private fun Uri.parseErrorDescription() = this.getQueryParameter("error_description")?.let { URLDecoder.decode(it, "UTF-8") }
+
+    private fun Uri.parseError() = this.getQueryParameter("error")?.let { URLDecoder.decode(it, "UTF-8") }
 
     /**
      * Parses the error description from the json response after an HTTP error is encountered during web authorization flow

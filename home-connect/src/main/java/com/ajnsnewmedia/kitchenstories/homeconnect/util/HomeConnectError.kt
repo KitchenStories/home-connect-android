@@ -10,4 +10,16 @@ sealed class HomeConnectError(message: String? = null, cause: Throwable? = null)
 
     class Unspecified(message: String?, cause: Throwable?) : HomeConnectError(message, cause)
 
+    class UserAbortedAuthorization(errorDescription: String?): HomeConnectError("User aborted the login: '${errorDescription}'")
+
+    companion object{
+        fun getExceptionFromError(errorString: String?, errorDescription: String?, cause: Throwable?): HomeConnectError {
+            //documentation from https://developer.home-connect.com/docs/authorization/authorizationerrors
+            return if (errorString == "access_denied"){
+                UserAbortedAuthorization(errorDescription)
+            } else {
+                Unspecified(errorDescription, cause = cause)
+            }
+        }
+    }
 }

@@ -1,5 +1,6 @@
 package de.kitchenstories.homeconnect
 
+import android.app.Dialog
 import android.os.Bundle
 import android.util.Log
 import android.view.View
@@ -20,6 +21,8 @@ import com.ajnsnewmedia.kitchenstories.homeconnect.model.programs.StartProgramRe
 import com.ajnsnewmedia.kitchenstories.homeconnect.sdk.HomeConnectAuthorization
 import com.ajnsnewmedia.kitchenstories.homeconnect.sdk.DefaultHomeConnectClient
 import com.ajnsnewmedia.kitchenstories.homeconnect.sdk.HomeConnectClient
+import com.ajnsnewmedia.kitchenstories.homeconnect.util.HomeConnectError
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.cancel
@@ -54,6 +57,7 @@ class MainActivity : AppCompatActivity(), CoroutineScope by MainScope() {
         if (homeConnectSecretsStore.accessToken != null) {
             showOvenControls()
         } else {
+            val activity = this
             launch {
                 try {
                     homeConnectAuthorization = HomeConnectAuthorization()
@@ -62,6 +66,22 @@ class MainActivity : AppCompatActivity(), CoroutineScope by MainScope() {
                                                         onRequestAccessTokenStarted = {})
                     showOvenControls()
                 } catch (e: Throwable) {
+                    if (e is HomeConnectError.UserAbortedAuthorization){
+                        Toast.makeText(activity,"All is fine, the user aborted", Toast.LENGTH_SHORT).show()
+                        activity.finish()
+                        return@launch
+                    }
+                    val message = if (e is HomeConnectError && e.message != null) {
+                        "The error description ist \"${e.message}\""
+                    } else {
+                        "something else failed. \"${e.localizedMessage}\""
+                    }
+                    MaterialAlertDialogBuilder(activity)
+                            .setTitle("Something went wrong")
+                            .setMessage(message)
+                            .setPositiveButton("OK") { _, _ -> }
+                            .create()
+                            .show()
                     Log.e("SampleApp", "authorization failed", e)
                 }
             }
