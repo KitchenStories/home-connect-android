@@ -32,8 +32,8 @@ class MainActivity : AppCompatActivity(), CoroutineScope by MainScope() {
 
     private val homeConnectSecretsStore by lazy { MyTestHomeConnectSecretsStore(applicationContext) }
 
-    //    private val baseUrl = "https://api.home-connect.com/"
-    private val baseUrl = "https://simulator.home-connect.com/"
+        private val baseUrl = "https://api.home-connect.com/"
+    //private val baseUrl = "https://simulator.home-connect.com/"
 
     private lateinit var homeConnectAuthenticateWebview: WebView
     private lateinit var ovenControls: ViewGroup
@@ -67,7 +67,7 @@ class MainActivity : AppCompatActivity(), CoroutineScope by MainScope() {
                     showOvenControls()
                 } catch (e: Throwable) {
                     if (e is HomeConnectError.UserAbortedAuthorization){
-                        Toast.makeText(activity,"All is fine, the user aborted", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(activity,"All is fine, the user aborted ${e.javaClass.canonicalName}:'${e.message}' ", Toast.LENGTH_LONG).show()
                         activity.finish()
                         return@launch
                     }

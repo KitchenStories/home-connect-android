@@ -10,13 +10,29 @@ sealed class HomeConnectError(message: String? = null, cause: Throwable? = null)
 
     class Unspecified(message: String?, cause: Throwable?) : HomeConnectError(message, cause)
 
-    class UserAbortedAuthorization(errorDescription: String?): HomeConnectError("User aborted the login: '${errorDescription}'")
+    abstract class UserAbortedAuthorization(errorDescription: String?): HomeConnectError("User aborted the login: '${errorDescription}'")
+
+    /**
+     * the user pressed cancel after logging in when reviewing the app permissions
+     */
+    class UserAbortedAuthorizationWhileGrantingPermissision(errorDescription: String?): UserAbortedAuthorization(errorDescription)
+
+    /**
+     * The user pressed cancel on the username and password entry page
+     */
+    class UserAbortedAuthorizationOnLogin(errorDescription: String?): UserAbortedAuthorization(errorDescription)
 
     companion object{
         fun getExceptionFromError(errorString: String?, errorDescription: String?, cause: Throwable?): HomeConnectError {
             //documentation from https://developer.home-connect.com/docs/authorization/authorizationerrors
             return if (errorString == "access_denied"){
-                UserAbortedAuthorization(errorDescription)
+                if (errorDescription == "login aborted by the user"){
+                    UserAbortedAuthorizationOnLogin(errorDescription)
+                } else if (errorDescription == "grant operation aborted by the user") {
+                    UserAbortedAuthorizationWhileGrantingPermissision(errorDescription)
+                }else {
+                    Unspecified(errorDescription, cause = cause)
+                }
             } else {
                 Unspecified(errorDescription, cause = cause)
             }
