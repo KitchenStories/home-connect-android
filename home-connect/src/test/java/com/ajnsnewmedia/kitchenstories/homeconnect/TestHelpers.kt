@@ -11,5 +11,14 @@ fun verifyThrowing(action: () -> Unit, verifyError: (error: Throwable) -> Unit) 
         verifyError(e)
     }
 }
+suspend fun verifyThrowingSuspended(action: suspend () -> Unit, verifyError: (error: Throwable) -> Unit) {
+    try {
+        action()
+        throw TestThrowingInternalException()
+    } catch (e: Throwable) {
+        assertFalse("action did not throw an exception", e is TestThrowingInternalException)
+        verifyError(e)
+    }
+}
 
 private class TestThrowingInternalException : Exception()

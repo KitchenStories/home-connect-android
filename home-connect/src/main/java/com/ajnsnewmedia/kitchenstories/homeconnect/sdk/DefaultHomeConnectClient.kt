@@ -3,6 +3,7 @@ package com.ajnsnewmedia.kitchenstories.homeconnect.sdk
 import com.ajnsnewmedia.kitchenstories.homeconnect.model.auth.HomeConnectClientCredentials
 import com.ajnsnewmedia.kitchenstories.homeconnect.util.DefaultErrorHandler
 import com.ajnsnewmedia.kitchenstories.homeconnect.util.DefaultHomeConnectApiFactory
+import kotlinx.coroutines.Dispatchers
 
 class DefaultHomeConnectClient(
     baseUrl: String,
@@ -14,6 +15,7 @@ class DefaultHomeConnectClient(
     },
     homeConnectSecretsStore,
     DefaultErrorHandler(),
+    Dispatchers.IO,
 ) {
     init {
         AuthorizationDependencies.baseUrl = baseUrl
