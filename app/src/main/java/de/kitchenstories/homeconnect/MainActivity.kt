@@ -1,5 +1,6 @@
 package de.kitchenstories.homeconnect
 
+import android.app.Dialog
 import android.os.Bundle
 import android.util.Log
 import android.view.View
@@ -20,6 +21,8 @@ import com.ajnsnewmedia.kitchenstories.homeconnect.model.programs.StartProgramRe
 import com.ajnsnewmedia.kitchenstories.homeconnect.sdk.HomeConnectAuthorization
 import com.ajnsnewmedia.kitchenstories.homeconnect.sdk.DefaultHomeConnectClient
 import com.ajnsnewmedia.kitchenstories.homeconnect.sdk.HomeConnectClient
+import com.ajnsnewmedia.kitchenstories.homeconnect.util.HomeConnectError
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.cancel
@@ -29,18 +32,20 @@ class MainActivity : AppCompatActivity(), CoroutineScope by MainScope() {
 
     private val homeConnectSecretsStore by lazy { MyTestHomeConnectSecretsStore(applicationContext) }
 
-    //    private val baseUrl = "https://api.home-connect.com/"
-    private val baseUrl = "https://simulator.home-connect.com/"
+        private val baseUrl = "https://api.home-connect.com/"
+    //private val baseUrl = "https://simulator.home-connect.com/"
 
     private lateinit var homeConnectAuthenticateWebview: WebView
     private lateinit var ovenControls: ViewGroup
     private lateinit var temperatureInput: EditText
     private val credentials = HomeConnectClientCredentials(
-        clientId = BuildConfig.homeConnectClientId,
-        clientSecret = BuildConfig.homeConnectClientSecret,
+            clientId = BuildConfig.homeConnectClientId,
+            clientSecret = BuildConfig.homeConnectClientSecret,
     )
 
     private lateinit var homeConnectClient: HomeConnectClient
+
+    private var homeConnectAuthorization: HomeConnectAuthorization? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -52,20 +57,46 @@ class MainActivity : AppCompatActivity(), CoroutineScope by MainScope() {
         if (homeConnectSecretsStore.accessToken != null) {
             showOvenControls()
         } else {
+            val activity = this
             launch {
                 try {
-                    HomeConnectAuthorization.authorize(homeConnectAuthenticateWebview, onRequestAccessTokenStarted = {})
+                    homeConnectAuthorization = HomeConnectAuthorization()
+                    homeConnectAuthorization?.authorize(homeConnectAuthenticateWebview,
+                                                        savedInstanceState,
+                                                        onRequestAccessTokenStarted = {})
                     showOvenControls()
                 } catch (e: Throwable) {
+                    if (e is HomeConnectError.UserAbortedAuthorization){
+                        Toast.makeText(activity,"All is fine, the user aborted ${e.javaClass.canonicalName}:'${e.message}' ", Toast.LENGTH_LONG).show()
+                        activity.finish()
+                        return@launch
+                    }
+                    val message = if (e is HomeConnectError && e.message != null) {
+                        "The error description ist \"${e.message}\""
+                    } else {
+                        "something else failed. \"${e.localizedMessage}\""
+                    }
+                    MaterialAlertDialogBuilder(activity)
+                            .setTitle("Something went wrong")
+                            .setMessage(message)
+                            .setPositiveButton("OK") { _, _ -> }
+                            .create()
+                            .show()
                     Log.e("SampleApp", "authorization failed", e)
                 }
             }
         }
     }
 
+    override fun onSaveInstanceState(outState: Bundle) {
+        homeConnectAuthorization?.saveInstanceState(homeConnectAuthenticateWebview, outState)
+        super.onSaveInstanceState(outState)
+    }
+
     override fun onDestroy() {
         super.onDestroy()
         cancel()
+        homeConnectAuthorization = null
     }
 
     private fun showOvenControls() {
@@ -100,17 +131,15 @@ class MainActivity : AppCompatActivity(), CoroutineScope by MainScope() {
 
         launch {
             homeConnectClient.startProgram(
-                forApplianceId = oven.id,
-                program = StartProgramRequest(
-                    key = program,
-                    options = listOf(
-                        StartProgramOption(
-                            key = ProgramOptionKey.SetpointTemperature,
-                            value = enteredTemperature,
-                            unit = "°C",
-                        )
+                    forApplianceId = oven.id,
+                    program = StartProgramRequest(
+                            key = program,
+                            options = listOf(StartProgramOption(
+                                    key = ProgramOptionKey.SetpointTemperature,
+                                    value = enteredTemperature,
+                                    unit = "°C",
+                            )),
                     ),
-                ),
             )
         }
     }

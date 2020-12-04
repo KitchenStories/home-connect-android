@@ -1,8 +1,7 @@
 package com.ajnsnewmedia.kitchenstories.homeconnect
 
-import com.ajnsnewmedia.kitchenstories.homeconnect.sdk.HomeConnectSecretsStore
 import com.ajnsnewmedia.kitchenstories.homeconnect.model.auth.HomeConnectAccessToken
-import com.ajnsnewmedia.kitchenstories.homeconnect.util.HomeConnectError
+import com.ajnsnewmedia.kitchenstories.homeconnect.sdk.HomeConnectSecretsStore
 import com.ajnsnewmedia.kitchenstories.homeconnect.util.HomeConnectInternalError
 import com.ajnsnewmedia.kitchenstories.homeconnect.util.TimeProvider
 import com.nhaarman.mockitokotlin2.never
