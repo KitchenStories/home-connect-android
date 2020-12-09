@@ -3,8 +3,6 @@ package com.ajnsnewmedia.kitchenstories.homeconnect.sdk
 import android.annotation.SuppressLint
 import android.net.Uri
 import android.os.Bundle
-import android.os.Parcel
-import android.os.Parcelable
 import android.util.Log
 import android.webkit.WebChromeClient
 import android.webkit.WebResourceRequest

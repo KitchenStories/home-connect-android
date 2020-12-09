@@ -146,7 +146,7 @@ class DefaultHomeConnectInteractorTest {
         whenever(homeConnectApi.startProgram(any(), any())).thenReturn(Response.error(400, "".toResponseBody()))
 
         verifyThrowingSuspended(action = { interactor.startProgram(forApplianceId = "appliance_id", testStartProgramRequest) }) { error ->
-            assertTrue(error is HomeConnectError.Unspecified)
+            assertTrue(error is HomeConnectError.StartProgramIssue)
         }
     }
 

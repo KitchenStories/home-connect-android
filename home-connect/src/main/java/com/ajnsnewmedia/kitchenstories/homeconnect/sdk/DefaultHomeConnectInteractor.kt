@@ -63,11 +63,14 @@ internal class DefaultHomeConnectInteractor(
         try {
             val response = homeConnectApi.startProgram(forApplianceId, HomeConnectApiRequest(program))
             if (!response.isSuccessful) {
-                val errorDescription = response.errorBody()?.tryParsingApiError()?.description
-                throw HomeConnectError.Unspecified(message = errorDescription ?: "", cause = HttpException(response))
+                val error = response.errorBody()?.tryParsingApiError()
+                throw HomeConnectError.StartProgramIssue(
+                        errorKey = error?.key ?: "",
+                        message = error?.description ?: "",
+                        cause = HttpException(response),
+                )
             }
         } catch (e: Throwable) {
-            Log.e("HomeConnectApi", "starting a program failed", e)
             errorHandler.handle(e)
         }
     }
