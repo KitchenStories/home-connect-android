@@ -92,7 +92,7 @@ class HomeConnectInterceptor(
                 return refreshedToken
             }
 
-            if (response.code == 400 || response.code == 403) {
+            if (response.code in 400..499) {
                 homeConnectSecretsStore.accessToken = null
                 val errorResponse = response.body?.parseAuthorizationErrorResponse()
                 throw HomeConnectInternalError(
