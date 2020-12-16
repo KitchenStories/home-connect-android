@@ -6,7 +6,7 @@ import com.squareup.moshi.JsonClass
 data class AvailableProgramsData(val programs: List<AvailableProgram>)
 
 @JsonClass(generateAdapter = true)
-data class AvailableProgram(val key: ProgramKey, val constraints: ProgramConstraint)
+data class AvailableProgram(val key: String, val name: String = key.getFallbackString(), val constraints: ProgramConstraint?)
 
 @JsonClass(generateAdapter = true)
 data class ProgramConstraint(val execution: ProgramExecutionConstraint)
@@ -17,4 +17,8 @@ enum class ProgramExecutionConstraint {
     selectonly,
     startonly,
     selectandstart,
+}
+
+private fun String.getFallbackString(): String {
+    return this.split('.').last()
 }
