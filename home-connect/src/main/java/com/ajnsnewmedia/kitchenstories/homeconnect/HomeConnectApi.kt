@@ -20,7 +20,7 @@ interface HomeConnectApi {
     suspend fun getActiveProgram(@Path("id") forApplianceId: String): HomeConnectApiResponse<ActiveProgram>
 
     @GET("/api/homeappliances/{id}/programs/available")
-    suspend fun getAvailablePrograms(@Path("id") forApplianceId: String): HomeConnectApiResponse<AvailableProgramsData>
+    suspend fun getAvailablePrograms(@Path("id") forApplianceId: String, @Header("Accept-Language") inLocale: String = ""): HomeConnectApiResponse<AvailableProgramsData>
 
     //TODO: see if the `grant_type` could be an annotation
     @FormUrlEncoded
@@ -35,6 +35,6 @@ interface HomeConnectApi {
     @PUT("/api/homeappliances/{id}/programs/active")
     suspend fun startProgram(
         @Path("id") forApplianceId: String,
-        @Body program: HomeConnectApiRequest<StartProgramRequest>
+        @Body program: HomeConnectApiRequest<StartProgramRequest>,
     ): Response<HomeConnectApiError?>
 }

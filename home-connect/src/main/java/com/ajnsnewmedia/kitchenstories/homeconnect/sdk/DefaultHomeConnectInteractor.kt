@@ -14,7 +14,6 @@ import com.ajnsnewmedia.kitchenstories.homeconnect.util.ErrorHandler
 import com.ajnsnewmedia.kitchenstories.homeconnect.util.HomeConnectApiFactory
 import com.ajnsnewmedia.kitchenstories.homeconnect.util.HomeConnectError
 import kotlinx.coroutines.CoroutineDispatcher
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import okhttp3.ResponseBody
 import okio.Buffer
@@ -46,9 +45,9 @@ internal class DefaultHomeConnectInteractor(
         }
     }
 
-    override suspend fun getAvailablePrograms(forApplianceId: String): List<AvailableProgram> {
+    override suspend fun getAvailablePrograms(forApplianceId: String, inLocale: String): List<AvailableProgram> {
         return try {
-            homeConnectApi.getAvailablePrograms(forApplianceId).data.programs
+            homeConnectApi.getAvailablePrograms(forApplianceId, inLocale).data.programs
         } catch (e: Throwable) {
             Log.e("HomeConnectApi", "getAllHomeAppliances failed", e)
             errorHandler.handle(e)
