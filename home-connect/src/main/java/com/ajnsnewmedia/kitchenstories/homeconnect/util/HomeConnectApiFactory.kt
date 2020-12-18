@@ -11,14 +11,13 @@ import retrofit2.Retrofit
 import retrofit2.converter.moshi.MoshiConverterFactory
 
 internal interface HomeConnectApiFactory {
-
     fun getHomeConnectApi(): HomeConnectApi
-
 }
 
 internal class DefaultHomeConnectApiFactory(
         private val baseUrl: String,
         private val secretsStore: HomeConnectSecretsStore,
+        private val clientCredentials: HomeConnectClientCredentials,
 ) : HomeConnectApiFactory {
 
     private var api: HomeConnectApi? = null
@@ -33,6 +32,7 @@ internal class DefaultHomeConnectApiFactory(
                         homeConnectSecretsStore = secretsStore,
                         converterFactory = moshiConverterFactory,
                         timeProvider = DefaultTimeProvider(),
+                        clientCredentials = clientCredentials
                 ))
             }.build()
             api = Retrofit.Builder()
