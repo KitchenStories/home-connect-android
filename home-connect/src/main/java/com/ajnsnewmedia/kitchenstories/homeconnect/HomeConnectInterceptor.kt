@@ -4,6 +4,7 @@ import android.util.Log
 import com.ajnsnewmedia.kitchenstories.homeconnect.model.auth.AccessTokenResponse
 import com.ajnsnewmedia.kitchenstories.homeconnect.model.auth.AuthorizationErrorResponse
 import com.ajnsnewmedia.kitchenstories.homeconnect.model.auth.HomeConnectAccessToken
+import com.ajnsnewmedia.kitchenstories.homeconnect.model.auth.HomeConnectClientCredentials
 import com.ajnsnewmedia.kitchenstories.homeconnect.model.auth.toHomeConnectAccessToken
 import com.ajnsnewmedia.kitchenstories.homeconnect.sdk.HomeConnectSecretsStore
 import com.ajnsnewmedia.kitchenstories.homeconnect.util.HomeConnectInternalError
@@ -25,6 +26,7 @@ class HomeConnectInterceptor(
         private val homeConnectSecretsStore: HomeConnectSecretsStore,
         private val converterFactory: MoshiConverterFactory,
         private val timeProvider: TimeProvider,
+        private val clientCredentials: HomeConnectClientCredentials,
 ) : Interceptor {
 
     @Suppress("UNCHECKED_CAST")
@@ -75,7 +77,11 @@ class HomeConnectInterceptor(
     }
 
     private fun Interceptor.Chain.renewAccessToken(refreshToken: String): HomeConnectAccessToken {
-        val requestBody = FormBody.Builder().addEncoded("grant_type", "refresh_token").addEncoded("refresh_token", refreshToken).build()
+        val requestBody = FormBody.Builder()
+                .addEncoded("grant_type", "refresh_token")
+                .addEncoded("refresh_token", refreshToken)
+                .addEncoded("client_secret", clientCredentials.clientSecret)
+                .build()
         val request = Request.Builder()
                 .url(this.request().url.newBuilder().encodedPath(ACCESS_TOKEN_ENDPOINT).build())
                 .header("Content-Type", "application/x-www-form-urlencoded")

@@ -10,7 +10,7 @@ class DefaultHomeConnectClient(
     clientCredentials: HomeConnectClientCredentials,
     private val homeConnectSecretsStore: HomeConnectSecretsStore,
 ) : HomeConnectClient by DefaultHomeConnectInteractor(
-    DefaultHomeConnectApiFactory(baseUrl, homeConnectSecretsStore).also {
+    DefaultHomeConnectApiFactory(baseUrl, homeConnectSecretsStore, clientCredentials).also {
         AuthorizationDependencies.homeConnectApiFactory = it
     },
     homeConnectSecretsStore,
