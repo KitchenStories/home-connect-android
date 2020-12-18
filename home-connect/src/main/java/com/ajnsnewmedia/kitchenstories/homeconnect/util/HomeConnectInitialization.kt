@@ -2,6 +2,7 @@ package com.ajnsnewmedia.kitchenstories.homeconnect.util
 
 import com.ajnsnewmedia.kitchenstories.homeconnect.HomeConnectApi
 import com.ajnsnewmedia.kitchenstories.homeconnect.HomeConnectInterceptor
+import com.ajnsnewmedia.kitchenstories.homeconnect.model.auth.HomeConnectClientCredentials
 import com.ajnsnewmedia.kitchenstories.homeconnect.sdk.HomeConnectSecretsStore
 import com.ajnsnewmedia.kitchenstories.homeconnect.model.jsonadapters.HomeConnectMoshiBuilder
 import okhttp3.OkHttpClient
@@ -9,7 +10,7 @@ import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
 import retrofit2.converter.moshi.MoshiConverterFactory
 
-internal fun getHomeConnectApi(baseUrl: String, homeConnectSecretsStore: HomeConnectSecretsStore): HomeConnectApi {
+internal fun getHomeConnectApi(baseUrl: String, homeConnectSecretsStore: HomeConnectSecretsStore, clientCredentials: HomeConnectClientCredentials): HomeConnectApi {
     val moshiConverterFactory = MoshiConverterFactory.create(HomeConnectMoshiBuilder.moshiInstance)
 
     val okHttpClient = OkHttpClient.Builder().apply {
@@ -18,6 +19,7 @@ internal fun getHomeConnectApi(baseUrl: String, homeConnectSecretsStore: HomeCon
                 homeConnectSecretsStore = homeConnectSecretsStore,
                 converterFactory = moshiConverterFactory,
                 timeProvider = DefaultTimeProvider(),
+                clientCredentials = clientCredentials
         ))
     }.build()
 
