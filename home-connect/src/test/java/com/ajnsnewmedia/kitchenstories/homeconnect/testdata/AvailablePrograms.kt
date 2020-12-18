@@ -5,4 +5,4 @@ import com.ajnsnewmedia.kitchenstories.homeconnect.model.programs.ProgramConstra
 import com.ajnsnewmedia.kitchenstories.homeconnect.model.programs.ProgramExecutionConstraint
 import com.ajnsnewmedia.kitchenstories.homeconnect.model.programs.ProgramKey
 
-val testAvailableProgram = AvailableProgram(ProgramKey.TopBottomHeating, ProgramConstraint(ProgramExecutionConstraint.none))
+val testAvailableProgram = AvailableProgram(ProgramKey.TopBottomHeating,"just a name" , ProgramConstraint(ProgramExecutionConstraint.none))

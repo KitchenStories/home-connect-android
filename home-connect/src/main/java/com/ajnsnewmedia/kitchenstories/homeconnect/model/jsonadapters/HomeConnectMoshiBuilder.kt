@@ -11,7 +11,6 @@ object HomeConnectMoshiBuilder {
         get() = Moshi.Builder()
                 .add(HomeApplianceType::class.java,
                      EnumJsonAdapter.create(HomeApplianceType::class.java).withUnknownFallback(HomeApplianceType.Unknown))
-                .add(ProgramKey::class.java, EnumJsonAdapter.create(ProgramKey::class.java).withUnknownFallback(ProgramKey.Unknown))
                 .add(ProgramOptionKey::class.java,
                      EnumJsonAdapter.create(ProgramOptionKey::class.java).withUnknownFallback(ProgramOptionKey.Unknown))
                 .build()

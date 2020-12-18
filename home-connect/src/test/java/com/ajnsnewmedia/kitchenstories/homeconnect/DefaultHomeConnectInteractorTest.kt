@@ -3,7 +3,6 @@ package com.ajnsnewmedia.kitchenstories.homeconnect
 import com.ajnsnewmedia.kitchenstories.homeconnect.model.appliances.HomeApplianceType
 import com.ajnsnewmedia.kitchenstories.homeconnect.model.appliances.HomeAppliancesData
 import com.ajnsnewmedia.kitchenstories.homeconnect.model.auth.HomeConnectAccessToken
-import com.ajnsnewmedia.kitchenstories.homeconnect.model.base.HomeConnectApiError
 import com.ajnsnewmedia.kitchenstories.homeconnect.model.base.HomeConnectApiRequest
 import com.ajnsnewmedia.kitchenstories.homeconnect.model.base.HomeConnectApiResponse
 import com.ajnsnewmedia.kitchenstories.homeconnect.model.programs.AvailableProgramsData
@@ -14,7 +13,6 @@ import com.ajnsnewmedia.kitchenstories.homeconnect.testdata.testAvailableProgram
 import com.ajnsnewmedia.kitchenstories.homeconnect.testdata.testHomeAppliance
 import com.ajnsnewmedia.kitchenstories.homeconnect.testdata.testStartProgramRequest
 import com.ajnsnewmedia.kitchenstories.homeconnect.util.CoroutinesTestRule
-import com.ajnsnewmedia.kitchenstories.homeconnect.util.ErrorHandler
 import com.ajnsnewmedia.kitchenstories.homeconnect.util.HomeConnectApiFactory
 import com.ajnsnewmedia.kitchenstories.homeconnect.util.HomeConnectError
 import com.ajnsnewmedia.kitchenstories.homeconnect.util.TestErrorHandler
@@ -122,12 +120,12 @@ class DefaultHomeConnectInteractorTest {
 
     @Test
     fun `getAvailablePrograms returns all loaded programs`() = runBlockingTest {
-        whenever(homeConnectApi.getAvailablePrograms("appliance_id")).thenReturn(HomeConnectApiResponse(AvailableProgramsData(listOf(
+        whenever(homeConnectApi.getAvailablePrograms("appliance_id", "en")).thenReturn(HomeConnectApiResponse(AvailableProgramsData(listOf(
                 testAvailableProgram,
                 testAvailableProgram.copy(ProgramKey.PreHeating),
         ))))
 
-        val result = interactor.getAvailablePrograms(forApplianceId = "appliance_id")
+        val result = interactor.getAvailablePrograms(forApplianceId = "appliance_id", "en")
 
         assertEquals(result, listOf(testAvailableProgram, testAvailableProgram.copy(ProgramKey.PreHeating)))
     }
@@ -136,7 +134,7 @@ class DefaultHomeConnectInteractorTest {
     fun `startProgram delegates to HomeConnectApi`() = runBlockingTest {
         whenever(homeConnectApi.startProgram(any(), any())).thenReturn(Response.success(null))
 
-        interactor.startProgram(forApplianceId = "appliance_id", testStartProgramRequest)
+        interactor.startProgram(forApplianceId = "appliance_id", program = testStartProgramRequest, safeLocaleString = safeLocaleString)
 
         verify(homeConnectApi).startProgram(forApplianceId = "appliance_id", HomeConnectApiRequest(testStartProgramRequest))
     }
@@ -145,7 +143,9 @@ class DefaultHomeConnectInteractorTest {
     fun `startProgram throws unspecified HomeConnectError when response is not successful`() = runBlockingTest {
         whenever(homeConnectApi.startProgram(any(), any())).thenReturn(Response.error(400, "".toResponseBody()))
 
-        verifyThrowingSuspended(action = { interactor.startProgram(forApplianceId = "appliance_id", testStartProgramRequest) }) { error ->
+        verifyThrowingSuspended(action = { interactor.startProgram(forApplianceId = "appliance_id",
+                                                                   program = testStartProgramRequest,
+                                                                   safeLocaleString = safeLocaleString) }) { error ->
             assertTrue(error is HomeConnectError.StartProgramIssue)
         }
     }
