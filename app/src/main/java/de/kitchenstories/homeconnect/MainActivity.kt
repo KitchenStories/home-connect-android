@@ -1,6 +1,5 @@
 package de.kitchenstories.homeconnect
 
-import android.app.Dialog
 import android.os.Bundle
 import android.util.Log
 import android.view.View
@@ -14,12 +13,11 @@ import androidx.core.view.isVisible
 import com.ajnsnewmedia.kitchenstories.homeconnect.model.appliances.HomeAppliance
 import com.ajnsnewmedia.kitchenstories.homeconnect.model.appliances.HomeApplianceType
 import com.ajnsnewmedia.kitchenstories.homeconnect.model.auth.HomeConnectClientCredentials
-import com.ajnsnewmedia.kitchenstories.homeconnect.model.programs.ProgramKey
 import com.ajnsnewmedia.kitchenstories.homeconnect.model.programs.ProgramOptionKey
 import com.ajnsnewmedia.kitchenstories.homeconnect.model.programs.StartProgramOption
 import com.ajnsnewmedia.kitchenstories.homeconnect.model.programs.StartProgramRequest
-import com.ajnsnewmedia.kitchenstories.homeconnect.sdk.HomeConnectAuthorization
 import com.ajnsnewmedia.kitchenstories.homeconnect.sdk.DefaultHomeConnectClient
+import com.ajnsnewmedia.kitchenstories.homeconnect.sdk.HomeConnectAuthorization
 import com.ajnsnewmedia.kitchenstories.homeconnect.sdk.HomeConnectClient
 import com.ajnsnewmedia.kitchenstories.homeconnect.util.HomeConnectError
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
@@ -33,7 +31,7 @@ class MainActivity : AppCompatActivity(), CoroutineScope by MainScope() {
     private val homeConnectSecretsStore by lazy { MyTestHomeConnectSecretsStore(applicationContext) }
 
         private val baseUrl = "https://api.home-connect.com/"
-    //private val baseUrl = "https://simulator.home-connect.com/"
+   // private val baseUrl = "https://simulator.home-connect.com/"
 
     private lateinit var homeConnectAuthenticateWebview: WebView
     private lateinit var ovenControls: ViewGroup
@@ -108,11 +106,11 @@ class MainActivity : AppCompatActivity(), CoroutineScope by MainScope() {
             if (oven == null) {
                 Toast.makeText(this@MainActivity, "No oven found", Toast.LENGTH_LONG).show()
             } else {
-                val availablePrograms = homeConnectClient.getAvailablePrograms(forApplianceId = oven.id)
+                val availablePrograms = homeConnectClient.getAvailablePrograms(forApplianceId = oven.id, inLocale = "")
                 availablePrograms.forEach { program ->
                     val programButton = Button(this@MainActivity)
                     ovenControls.addView(programButton)
-                    programButton.text = program.key.name
+                    programButton.text = program.key
                     programButton.setOnClickListener {
                         startProgram(oven, program.key)
                     }
@@ -122,7 +120,7 @@ class MainActivity : AppCompatActivity(), CoroutineScope by MainScope() {
         }
     }
 
-    private fun startProgram(oven: HomeAppliance, program: ProgramKey) {
+    private fun startProgram(oven: HomeAppliance, program: String) {
         val enteredTemperature = temperatureInput.text.toString().toIntOrNull()
         if (enteredTemperature == null) {
             Toast.makeText(this, "Please enter a temperature", Toast.LENGTH_LONG).show()
