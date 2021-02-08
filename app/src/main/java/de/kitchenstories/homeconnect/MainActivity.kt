@@ -30,8 +30,8 @@ class MainActivity : AppCompatActivity(), CoroutineScope by MainScope() {
 
     private val homeConnectSecretsStore by lazy { MyTestHomeConnectSecretsStore(applicationContext) }
 
-        private val baseUrl = "https://api.home-connect.com/"
-   // private val baseUrl = "https://simulator.home-connect.com/"
+       // private val baseUrl = "https://api.home-connect.com/"
+   private val baseUrl = "https://simulator.home-connect.com/"
 
     private lateinit var homeConnectAuthenticateWebview: WebView
     private lateinit var ovenControls: ViewGroup
