@@ -114,6 +114,9 @@ class MainActivity : AppCompatActivity(), CoroutineScope by MainScope() {
                     programButton.setOnClickListener {
                         startProgram(oven, program.key)
                     }
+                    val availableProgramOptions = homeConnectClient.getAvailableProgramOptions(forApplianceId = oven.id,"en",forProgramKey = program.key)
+                    Log.d("program options","${availableProgramOptions}")
+
                 }
 
             }
