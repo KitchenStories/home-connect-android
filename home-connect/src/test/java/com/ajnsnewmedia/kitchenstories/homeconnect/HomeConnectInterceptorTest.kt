@@ -37,11 +37,10 @@ class HomeConnectInterceptorTest {
     @Mock
     private lateinit var timeProvider: TimeProvider
 
-    @Mock
-    private lateinit var clientCredentials: HomeConnectClientCredentials
-
     private lateinit var client: OkHttpClient
 
+    private val testClientCredentials =
+        HomeConnectClientCredentials("testClientId", "testClientSecret")
     private val testAccessToken =
         HomeConnectAccessToken("token", expiresAt = 1_000_000L, "refresh_token")
 
@@ -63,7 +62,7 @@ class HomeConnectInterceptorTest {
     private fun verifyAccessTokenRequest(recordedRequest: RecordedRequest, refreshToken: String) {
         // verify that the access token request is correct
         assertEquals(
-            "grant_type=refresh_token&refresh_token=$refreshToken",
+            "grant_type=refresh_token&refresh_token=$refreshToken&client_secret=${testClientCredentials.clientSecret}",
             recordedRequest.body.readUtf8()
         )
         assertEquals(mockServer.url(ACCESS_TOKEN_ENDPOINT), recordedRequest.requestUrl)
@@ -80,7 +79,7 @@ class HomeConnectInterceptorTest {
             homeConnectSecretsStore = homeConnectSecretsStore,
             converterFactory = MoshiConverterFactory.create(),
             timeProvider = timeProvider,
-            clientCredentials = clientCredentials
+            clientCredentials = testClientCredentials
         )
 
         whenever(timeProvider.currentTimestamp).thenReturn(0L)
