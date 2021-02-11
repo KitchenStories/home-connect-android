@@ -3,7 +3,7 @@ package com.ajnsnewmedia.kitchenstories.homeconnect.sdk
 import com.ajnsnewmedia.kitchenstories.homeconnect.model.appliances.HomeAppliance
 import com.ajnsnewmedia.kitchenstories.homeconnect.model.appliances.HomeApplianceType
 import com.ajnsnewmedia.kitchenstories.homeconnect.model.programs.AvailableProgram
-import com.ajnsnewmedia.kitchenstories.homeconnect.model.programs.SpecificAvailableProgram
+import com.ajnsnewmedia.kitchenstories.homeconnect.model.programs.ProgramOptions
 import com.ajnsnewmedia.kitchenstories.homeconnect.model.programs.StartProgramRequest
 
 interface HomeConnectClient {
@@ -17,11 +17,11 @@ interface HomeConnectClient {
         inLocale: String
     ): List<AvailableProgram>
 
-    suspend fun getSpecificAvailableProgram(
+    suspend fun getAvailableProgramOptions(
         forApplianceId: String,
         inLocale: String,
         forProgramKey: String
-    ):SpecificAvailableProgram
+    ): List<ProgramOptions>
 
     fun logOutUser()
 

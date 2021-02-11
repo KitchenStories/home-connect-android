@@ -9,7 +9,7 @@ import com.ajnsnewmedia.kitchenstories.homeconnect.model.base.HomeConnectApiErro
 import com.ajnsnewmedia.kitchenstories.homeconnect.model.base.HomeConnectApiRequest
 import com.ajnsnewmedia.kitchenstories.homeconnect.model.jsonadapters.HomeConnectMoshiBuilder
 import com.ajnsnewmedia.kitchenstories.homeconnect.model.programs.AvailableProgram
-import com.ajnsnewmedia.kitchenstories.homeconnect.model.programs.SpecificAvailableProgram
+import com.ajnsnewmedia.kitchenstories.homeconnect.model.programs.ProgramOptions
 import com.ajnsnewmedia.kitchenstories.homeconnect.model.programs.StartProgramRequest
 import com.ajnsnewmedia.kitchenstories.homeconnect.util.ErrorHandler
 import com.ajnsnewmedia.kitchenstories.homeconnect.util.HomeConnectApiFactory
@@ -58,15 +58,15 @@ internal class DefaultHomeConnectInteractor(
         }
     }
 
-    override suspend fun getSpecificAvailableProgram(
+    override suspend fun getAvailableProgramOptions(
         forApplianceId: String,
         inLocale: String,
         forProgramKey: String
-    ): SpecificAvailableProgram {
+    ): List<ProgramOptions> {
         return try {
-            homeConnectApi.getSpecificAvailableProgram(forApplianceId, inLocale, forProgramKey).data
+            homeConnectApi.getSpecificAvailableProgram(forApplianceId, inLocale, forProgramKey).data.options
         } catch (e: Throwable) {
-            Log.e("HomeConnectApi", "getSpecificAvailableProgram failed", e)
+            Log.e("HomeConnectApi", "getAvailableProgramOptions failed", e)
             errorHandler.handle(e)
         }
     }
