@@ -1,6 +1,7 @@
 package com.ajnsnewmedia.kitchenstories.homeconnect
 
 import com.ajnsnewmedia.kitchenstories.homeconnect.model.auth.HomeConnectAccessToken
+import com.ajnsnewmedia.kitchenstories.homeconnect.model.auth.HomeConnectClientCredentials
 import com.ajnsnewmedia.kitchenstories.homeconnect.sdk.HomeConnectSecretsStore
 import com.ajnsnewmedia.kitchenstories.homeconnect.util.HomeConnectInternalError
 import com.ajnsnewmedia.kitchenstories.homeconnect.util.TimeProvider
@@ -36,42 +37,57 @@ class HomeConnectInterceptorTest {
     @Mock
     private lateinit var timeProvider: TimeProvider
 
+    @Mock
+    private lateinit var clientCredentials: HomeConnectClientCredentials
+
     private lateinit var client: OkHttpClient
 
-    private val testAccessToken = HomeConnectAccessToken("token", expiresAt = 1_000_000L, "refresh_token")
+    private val testAccessToken =
+        HomeConnectAccessToken("token", expiresAt = 1_000_000L, "refresh_token")
 
-    private fun accessTokenResponse(token: String = "new_token", expiresIn: Int = 86400, refreshToken: String = "new_refresh_token") =
-            MockResponse().setResponseCode(200).setBody("""
+    private fun accessTokenResponse(
+        token: String = "new_token",
+        expiresIn: Int = 86400,
+        refreshToken: String = "new_refresh_token"
+    ) =
+        MockResponse().setResponseCode(200).setBody(
+            """
                 {
                     "access_token": "$token",
                     "expires_in": $expiresIn,
                     "refresh_token": "$refreshToken"
                 }
-            """)
+            """
+        )
 
     private fun verifyAccessTokenRequest(recordedRequest: RecordedRequest, refreshToken: String) {
         // verify that the access token request is correct
-        assertEquals("grant_type=refresh_token&refresh_token=$refreshToken", recordedRequest.body.readUtf8())
+        assertEquals(
+            "grant_type=refresh_token&refresh_token=$refreshToken",
+            recordedRequest.body.readUtf8()
+        )
         assertEquals(mockServer.url(ACCESS_TOKEN_ENDPOINT), recordedRequest.requestUrl)
     }
 
     private fun testRequest(path: String = "/") =
-            Request.Builder().addHeader("Accept", "application/json").url(mockServer.url(path)).build()
+        Request.Builder().addHeader("Accept", "application/json").url(mockServer.url(path)).build()
 
     @Before
     fun setUp() {
         MockitoAnnotations.initMocks(this)
 
         val interceptor = HomeConnectInterceptor(
-                homeConnectSecretsStore = homeConnectSecretsStore,
-                converterFactory = MoshiConverterFactory.create(),
-                timeProvider = timeProvider,
+            homeConnectSecretsStore = homeConnectSecretsStore,
+            converterFactory = MoshiConverterFactory.create(),
+            timeProvider = timeProvider,
+            clientCredentials = clientCredentials
         )
 
         whenever(timeProvider.currentTimestamp).thenReturn(0L)
         whenever(homeConnectSecretsStore.accessToken).thenReturn(testAccessToken)
 
-        client = OkHttpClient.Builder().addInterceptor(interceptor).addInterceptor(HttpLoggingInterceptor()).build()
+        client = OkHttpClient.Builder().addInterceptor(interceptor)
+            .addInterceptor(HttpLoggingInterceptor()).build()
     }
 
     @Test
@@ -100,7 +116,9 @@ class HomeConnectInterceptorTest {
         whenever(homeConnectSecretsStore.accessToken).thenReturn(null)
         mockServer.enqueue(MockResponse())
 
-        verifyThrowing(action = { client.newCall(testRequest()).execute() }, verifyError = { assertTrue(it is HomeConnectInternalError) })
+        verifyThrowing(
+            action = { client.newCall(testRequest()).execute() },
+            verifyError = { assertTrue(it is HomeConnectInternalError) })
     }
 
     @Test
@@ -119,7 +137,13 @@ class HomeConnectInterceptorTest {
         val testTimestamp = 10_001L
         whenever(homeConnectSecretsStore.accessToken).thenReturn(testAccessToken.copy(expiresAt = 10_000L))
         whenever(timeProvider.currentTimestamp).thenReturn(testTimestamp)
-        mockServer.enqueue(accessTokenResponse(token = "new_access_token", expiresIn = 10_000, refreshToken = "updated_refresh_token"))
+        mockServer.enqueue(
+            accessTokenResponse(
+                token = "new_access_token",
+                expiresIn = 10_000,
+                refreshToken = "updated_refresh_token"
+            )
+        )
         mockServer.enqueue(MockResponse())
 
         client.newCall(testRequest("/original_request")).execute()
@@ -129,9 +153,9 @@ class HomeConnectInterceptorTest {
         verifyAccessTokenRequest(accessTokenRequest, refreshToken = testAccessToken.refreshToken)
 
         verify(homeConnectSecretsStore).accessToken = HomeConnectAccessToken(
-                token = "new_access_token",
-                expiresAt = testTimestamp + 10_000 * 1000,
-                refreshToken = "updated_refresh_token",
+            token = "new_access_token",
+            expiresAt = testTimestamp + 10_000 * 1000,
+            refreshToken = "updated_refresh_token",
         )
 
         // verify that original request is run with refreshed token
@@ -148,11 +172,16 @@ class HomeConnectInterceptorTest {
         // mock failing access token request
         mockServer.enqueue(MockResponse().setResponseCode(400))
 
-        verifyThrowing(action = { client.newCall(testRequest()).execute() }, verifyError = { error ->
-            assertTrue(error is HomeConnectInternalError)
-            assertEquals((error as HomeConnectInternalError).type, HomeConnectInternalError.Type.StaleAuthorization)
-            verify(homeConnectSecretsStore).accessToken = null
-        })
+        verifyThrowing(
+            action = { client.newCall(testRequest()).execute() },
+            verifyError = { error ->
+                assertTrue(error is HomeConnectInternalError)
+                assertEquals(
+                    (error as HomeConnectInternalError).type,
+                    HomeConnectInternalError.Type.StaleAuthorization
+                )
+                verify(homeConnectSecretsStore).accessToken = null
+            })
     }
 
     @Test
@@ -163,11 +192,16 @@ class HomeConnectInterceptorTest {
         // mock failing access token request
         mockServer.enqueue(MockResponse().setResponseCode(403))
 
-        verifyThrowing(action = { client.newCall(testRequest()).execute() }, verifyError = { error ->
-            assertTrue(error is HomeConnectInternalError)
-            assertEquals((error as HomeConnectInternalError).type, HomeConnectInternalError.Type.StaleAuthorization)
-            verify(homeConnectSecretsStore).accessToken = null
-        })
+        verifyThrowing(
+            action = { client.newCall(testRequest()).execute() },
+            verifyError = { error ->
+                assertTrue(error is HomeConnectInternalError)
+                assertEquals(
+                    (error as HomeConnectInternalError).type,
+                    HomeConnectInternalError.Type.StaleAuthorization
+                )
+                verify(homeConnectSecretsStore).accessToken = null
+            })
     }
 
     @Test
@@ -183,7 +217,10 @@ class HomeConnectInterceptorTest {
             throw AssertionError("No exception has been thrown")
         } catch (e: Throwable) {
             assertTrue(e is HomeConnectInternalError)
-            assertEquals((e as HomeConnectInternalError).type, HomeConnectInternalError.Type.Unspecified)
+            assertEquals(
+                (e as HomeConnectInternalError).type,
+                HomeConnectInternalError.Type.Unspecified
+            )
             verify(homeConnectSecretsStore, never()).accessToken = null
         }
     }
@@ -194,7 +231,13 @@ class HomeConnectInterceptorTest {
         whenever(homeConnectSecretsStore.accessToken).thenReturn(testAccessToken)
         whenever(timeProvider.currentTimestamp).thenReturn(testTimestamp)
         mockServer.enqueue(MockResponse().setResponseCode(401))
-        mockServer.enqueue(accessTokenResponse(token = "new_token", expiresIn = 86400, refreshToken = "new_refresh_token"))
+        mockServer.enqueue(
+            accessTokenResponse(
+                token = "new_token",
+                expiresIn = 86400,
+                refreshToken = "new_refresh_token"
+            )
+        )
         mockServer.enqueue(MockResponse().setResponseCode(200))
 
         client.newCall(testRequest("/original_request")).execute()
@@ -205,9 +248,9 @@ class HomeConnectInterceptorTest {
         verifyAccessTokenRequest(accessTokenRequest, refreshToken = testAccessToken.refreshToken)
 
         verify(homeConnectSecretsStore).accessToken = HomeConnectAccessToken(
-                token = "new_token",
-                expiresAt = testTimestamp + 86400 * 1000,
-                refreshToken = "new_refresh_token",
+            token = "new_token",
+            expiresAt = testTimestamp + 86400 * 1000,
+            refreshToken = "new_refresh_token",
         )
 
         // verify that original request is run with refreshed token

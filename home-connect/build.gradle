@@ -82,4 +82,6 @@ dependencies {
     // mockito - mocking and stubbing
     testImplementation "com.nhaarman.mockitokotlin2:mockito-kotlin:$mockitoKotlinVersion"
     testImplementation "org.jetbrains.kotlinx:kotlinx-coroutines-test:$coroutinesVersion"
+    testImplementation 'org.mockito:mockito-inline:2.13.0'
+
 }
