@@ -7,6 +7,7 @@ import android.view.ViewGroup
 import android.webkit.WebView
 import android.widget.Button
 import android.widget.EditText
+import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.isVisible
@@ -30,15 +31,16 @@ class MainActivity : AppCompatActivity(), CoroutineScope by MainScope() {
 
     private val homeConnectSecretsStore by lazy { MyTestHomeConnectSecretsStore(applicationContext) }
 
-       // private val baseUrl = "https://api.home-connect.com/"
-   private val baseUrl = "https://simulator.home-connect.com/"
+    // private val baseUrl = "https://api.home-connect.com/"
+    private val baseUrl = "https://simulator.home-connect.com/"
 
     private lateinit var homeConnectAuthenticateWebview: WebView
     private lateinit var ovenControls: ViewGroup
     private lateinit var temperatureInput: EditText
+    private lateinit var programsList: ViewGroup
     private val credentials = HomeConnectClientCredentials(
-            clientId = BuildConfig.homeConnectClientId,
-            clientSecret = BuildConfig.homeConnectClientSecret,
+        clientId = BuildConfig.homeConnectClientId,
+        clientSecret = BuildConfig.homeConnectClientSecret,
     )
 
     private lateinit var homeConnectClient: HomeConnectClient
@@ -52,6 +54,7 @@ class MainActivity : AppCompatActivity(), CoroutineScope by MainScope() {
         homeConnectAuthenticateWebview = findViewById(R.id.home_connect_authenticate_webview)
         ovenControls = findViewById(R.id.oven_controls)
         temperatureInput = findViewById(R.id.temperature_input)
+        programsList = findViewById(R.id.programs_list)
         if (homeConnectSecretsStore.accessToken != null) {
             showOvenControls()
         } else {
@@ -60,12 +63,16 @@ class MainActivity : AppCompatActivity(), CoroutineScope by MainScope() {
                 try {
                     homeConnectAuthorization = HomeConnectAuthorization()
                     homeConnectAuthorization?.authorize(homeConnectAuthenticateWebview,
-                                                        savedInstanceState,
-                                                        onRequestAccessTokenStarted = {})
+                        savedInstanceState,
+                        onRequestAccessTokenStarted = {})
                     showOvenControls()
                 } catch (e: Throwable) {
-                    if (e is HomeConnectError.UserAbortedAuthorization){
-                        Toast.makeText(activity,"All is fine, the user aborted ${e.javaClass.canonicalName}:'${e.message}' ", Toast.LENGTH_LONG).show()
+                    if (e is HomeConnectError.UserAbortedAuthorization) {
+                        Toast.makeText(
+                            activity,
+                            "All is fine, the user aborted ${e.javaClass.canonicalName}:'${e.message}' ",
+                            Toast.LENGTH_LONG
+                        ).show()
                         activity.finish()
                         return@launch
                     }
@@ -75,11 +82,11 @@ class MainActivity : AppCompatActivity(), CoroutineScope by MainScope() {
                         "something else failed. \"${e.localizedMessage}\""
                     }
                     MaterialAlertDialogBuilder(activity)
-                            .setTitle("Something went wrong")
-                            .setMessage(message)
-                            .setPositiveButton("OK") { _, _ -> }
-                            .create()
-                            .show()
+                        .setTitle("Something went wrong")
+                        .setMessage(message)
+                        .setPositiveButton("OK") { _, _ -> }
+                        .create()
+                        .show()
                     Log.e("SampleApp", "authorization failed", e)
                 }
             }
@@ -102,22 +109,12 @@ class MainActivity : AppCompatActivity(), CoroutineScope by MainScope() {
         homeConnectAuthenticateWebview.isVisible = false
         ovenControls.isVisible = true
         launch {
-            val oven = homeConnectClient.getAllHomeAppliances(ofType = HomeApplianceType.Oven).firstOrNull()
+            val oven = homeConnectClient.getAllHomeAppliances(ofType = HomeApplianceType.Oven)
+                .firstOrNull()
             if (oven == null) {
                 Toast.makeText(this@MainActivity, "No oven found", Toast.LENGTH_LONG).show()
             } else {
-                val availablePrograms = homeConnectClient.getAvailablePrograms(forApplianceId = oven.id, inLocale = "")
-                availablePrograms.forEach { program ->
-                    val programButton = Button(this@MainActivity)
-                    ovenControls.addView(programButton)
-                    programButton.text = program.key
-                    programButton.setOnClickListener {
-                        startProgram(oven, program.key)
-                    }
-                    val availableProgramOptions = homeConnectClient.getAvailableProgramOptions(forApplianceId = oven.id,"en",forProgramKey = program.key)
-                    Log.d("program options","${availableProgramOptions}")
-
-                }
+                showAvailablePrograms(oven = oven)
 
             }
         }
@@ -132,16 +129,61 @@ class MainActivity : AppCompatActivity(), CoroutineScope by MainScope() {
 
         launch {
             homeConnectClient.startProgram(
-                    forApplianceId = oven.id,
-                    program = StartProgramRequest(
-                            key = program,
-                            options = listOf(StartProgramOption(
-                                    key = ProgramOptionKey.SetpointTemperature,
-                                    value = enteredTemperature,
-                                    unit = "°C",
-                            )),
+                forApplianceId = oven.id,
+                program = StartProgramRequest(
+                    key = program,
+                    options = listOf(
+                        StartProgramOption(
+                            key = ProgramOptionKey.SetpointTemperature,
+                            value = enteredTemperature,
+                            unit = "°C",
+                        )
                     ),
+                ),
             )
         }
+    }
+
+    private fun showAvailablePrograms(oven: HomeAppliance) {
+        launch {
+            val availablePrograms =
+                homeConnectClient.getAvailablePrograms(forApplianceId = oven.id, inLocale = "")
+            availablePrograms.forEach { program ->
+                val programTextView = TextView(this@MainActivity)
+                val startButton = Button(this@MainActivity)
+                val optionsButton = Button(this@MainActivity)
+                programsList.addView(programTextView)
+                programsList.addView(startButton)
+                programsList.addView(optionsButton)
+                programTextView.text = program.name
+                startButton.text = "Start Program"
+                optionsButton.text = "See Options"
+                startButton.setOnClickListener {
+                    startProgram(oven, program.key)
+                }
+                optionsButton.setOnClickListener {
+                    showProgramOptions(ovenId = oven.id, programKey = program.key)
+                }
+
+            }
+
+        }
+    }
+
+    private fun showProgramOptions(ovenId: String, programKey: String) {
+        launch {
+            val availableProgramOptions = homeConnectClient.getAvailableProgramOptions(
+                forApplianceId = ovenId,
+                "en",
+                forProgramKey = programKey
+            )
+            availableProgramOptions.forEach { option ->
+                val programOptionsButton = TextView(this@MainActivity)
+                programsList.addView(programOptionsButton)
+                programOptionsButton.text = option.key
+
+            }
+        }
+
     }
 }
