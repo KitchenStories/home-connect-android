@@ -64,7 +64,7 @@ internal class DefaultHomeConnectInteractor(
         forProgramKey: String
     ): List<ProgramOptions> {
         return try {
-            homeConnectApi.getSpecificAvailableProgram(forApplianceId, inLocale, forProgramKey).data.options
+            homeConnectApi.getAvailableProgramDetail(forApplianceId, inLocale, forProgramKey).data.options
         } catch (e: Throwable) {
             Log.e("HomeConnectApi", "getAvailableProgramOptions failed", e)
             errorHandler.handle(e)

@@ -31,8 +31,8 @@ class MainActivity : AppCompatActivity(), CoroutineScope by MainScope() {
 
     private val homeConnectSecretsStore by lazy { MyTestHomeConnectSecretsStore(applicationContext) }
 
-    // private val baseUrl = "https://api.home-connect.com/"
-    private val baseUrl = "https://simulator.home-connect.com/"
+     private val baseUrl = "https://api.home-connect.com/"
+    //private val baseUrl = "https://simulator.home-connect.com/"
 
     private lateinit var homeConnectAuthenticateWebview: WebView
     private lateinit var ovenControls: ViewGroup
@@ -156,8 +156,8 @@ class MainActivity : AppCompatActivity(), CoroutineScope by MainScope() {
                 programsList.addView(startButton)
                 programsList.addView(optionsButton)
                 programTextView.text = program.name
-                startButton.text = "Start Program"
-                optionsButton.text = "See Options"
+                startButton.text = getString(R.string.oven_start_program)
+                optionsButton.text = getString(R.string.oven_see_options)
                 startButton.setOnClickListener {
                     startProgram(oven, program.key)
                 }

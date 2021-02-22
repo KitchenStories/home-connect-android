@@ -10,10 +10,10 @@ import org.junit.Assert
 import org.junit.Before
 import org.junit.Test
 
-class SpecificAvailableProgramTest {
-    private lateinit var adapter: JsonAdapter<SpecificAvailableProgram>
+class AvailableProgramDetailTest {
+    private lateinit var adapter: JsonAdapter<AvailableProgramDetail>
 
-    private var testSpecificAvailableProgarm1 = SpecificAvailableProgram(
+    private var testSpecificAvailableProgarm1 = AvailableProgramDetail(
         key = "Cooking.Oven.Program.HeatingMode.HotAir",
         name = "4D Heißluft",
         options = listOf(
@@ -32,7 +32,7 @@ class SpecificAvailableProgramTest {
             )
         )
     )
-    private var testSpecificAvailableProgarm2 = SpecificAvailableProgram(
+    private var testSpecificAvailableProgarm2 = AvailableProgramDetail(
         key = "Cooking.Oven.Program.HeatingMode.HotAir",
         name = "4D Heißluft",
         options = listOf(
@@ -51,7 +51,7 @@ class SpecificAvailableProgramTest {
             )
         )
     )
-    private var testSpecificAvailableProgarm3 = SpecificAvailableProgram(
+    private var testSpecificAvailableProgarm3 = AvailableProgramDetail(
         key = "Cooking.Oven.Program.HeatingMode.HotAir",
         name = "4D Heißluft",
         options = listOf(
@@ -71,7 +71,7 @@ class SpecificAvailableProgramTest {
         )
     )
 
-    private var testSpecificAvailableProgarm4 = SpecificAvailableProgram(
+    private var testSpecificAvailableProgarm4 = AvailableProgramDetail(
         key = "Cooking.Oven.Program.HeatingMode.HotAir",
         name = "4D Heißluft",
         options = listOf(
@@ -94,7 +94,7 @@ class SpecificAvailableProgramTest {
     @Before
     fun setUp() {
         val moshi = HomeConnectMoshiBuilder.moshiInstance
-        adapter = moshi.adapter(SpecificAvailableProgram::class.java)
+        adapter = moshi.adapter(AvailableProgramDetail::class.java)
     }
 
     @Test
