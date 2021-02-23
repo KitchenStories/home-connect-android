@@ -131,13 +131,22 @@ class MainActivity : AppCompatActivity(), CoroutineScope by MainScope() {
 
     private fun fetchAppliances() {
         launch {
-            val oven = homeConnectClient.getAllHomeAppliances(ofType = HomeApplianceType.Oven)
-                    .firstOrNull()
-            if (oven == null) {
-                Toast.makeText(this@MainActivity, "No oven found", Toast.LENGTH_LONG).show()
-            } else {
-                showAvailablePrograms(oven = oven)
-
+            try {
+                val oven = homeConnectClient.getAllHomeAppliances(ofType = HomeApplianceType.Oven)
+                        .firstOrNull()
+                if (oven == null) {
+                    Toast.makeText(this@MainActivity, "No oven found", Toast.LENGTH_LONG).show()
+                } else {
+                    showAvailablePrograms(oven = oven)
+                }
+            } catch (e:Exception){
+                MaterialAlertDialogBuilder(this@MainActivity)
+                        .setTitle("Could not fetch the appliances")
+                        .setMessage("'$e.message'")
+                        .setPositiveButton("OK") { _, _ -> }
+                        .setNeutralButton("Retry") { _, _ -> fetchAppliances() }
+                        .create()
+                        .show()
             }
         }
     }
@@ -166,9 +175,10 @@ class MainActivity : AppCompatActivity(), CoroutineScope by MainScope() {
                 )
             } catch (e: Exception){
                 MaterialAlertDialogBuilder(this@MainActivity)
-                        .setTitle("Something went wrong")
-                        .setMessage("Could not start the program: '$e.message'")
+                        .setTitle("Could not start the program")
+                        .setMessage("Error: '$e.message'")
                         .setPositiveButton("OK") { _, _ -> }
+                        .setNeutralButton("Retry") { _, _ -> startProgram(oven, program) }
                         .create()
                         .show()
             }
