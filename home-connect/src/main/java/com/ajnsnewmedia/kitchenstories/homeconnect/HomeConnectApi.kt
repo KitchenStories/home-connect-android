@@ -7,7 +7,7 @@ import com.ajnsnewmedia.kitchenstories.homeconnect.model.base.HomeConnectApiRequ
 import com.ajnsnewmedia.kitchenstories.homeconnect.model.base.HomeConnectApiResponse
 import com.ajnsnewmedia.kitchenstories.homeconnect.model.programs.ActiveProgram
 import com.ajnsnewmedia.kitchenstories.homeconnect.model.programs.AvailableProgramsData
-import com.ajnsnewmedia.kitchenstories.homeconnect.model.programs.SpecificAvailableProgram
+import com.ajnsnewmedia.kitchenstories.homeconnect.model.programs.AvailableProgramDetail
 import com.ajnsnewmedia.kitchenstories.homeconnect.model.programs.StartProgramRequest
 import retrofit2.Response
 import retrofit2.http.*
@@ -27,11 +27,11 @@ interface HomeConnectApi {
     ): HomeConnectApiResponse<AvailableProgramsData>
 
     @GET("/api/homeappliances/{id}/programs/available/{programKey}")
-    suspend fun getSpecificAvailableProgram(
+    suspend fun getAvailableProgramDetail(
         @Path("id") forApplianceId: String,
         @Header("Accept-Language") inLocale: String = "",
         @Path("programKey") forProgramKey: String,
-    ): HomeConnectApiResponse<SpecificAvailableProgram>
+    ): HomeConnectApiResponse<AvailableProgramDetail>
 
     //TODO: see if the `grant_type` could be an annotation
     @FormUrlEncoded

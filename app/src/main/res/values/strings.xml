@@ -30,4 +30,6 @@
         <item>tr</item>
         <item>uk</item>
     </string-array>
+    <string name="oven_start_program">Start Program</string>
+    <string name="oven_see_options">See Options</string>
 </resources>

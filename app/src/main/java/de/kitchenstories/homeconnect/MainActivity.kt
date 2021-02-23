@@ -194,7 +194,6 @@ class MainActivity : AppCompatActivity(), CoroutineScope by MainScope() {
             } catch (e:Exception){
                 Toast.makeText(this@MainActivity, "Error: could not load the programs: ${e.message}", Toast.LENGTH_LONG).show()
             }
-
         }
     }
 

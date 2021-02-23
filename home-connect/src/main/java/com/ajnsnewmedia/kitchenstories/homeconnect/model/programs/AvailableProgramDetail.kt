@@ -3,7 +3,7 @@ package com.ajnsnewmedia.kitchenstories.homeconnect.model.programs
 import com.squareup.moshi.JsonClass
 
 @JsonClass(generateAdapter = true)
-data class SpecificAvailableProgram(
+data class AvailableProgramDetail(
     val key: String,
     val name: String?,
     val options: List<ProgramOptions>
