@@ -17,6 +17,8 @@ import com.ajnsnewmedia.kitchenstories.homeconnect.model.appliances.HomeApplianc
 import com.ajnsnewmedia.kitchenstories.homeconnect.model.appliances.HomeApplianceType
 import com.ajnsnewmedia.kitchenstories.homeconnect.model.auth.HomeConnectClientCredentials
 import com.ajnsnewmedia.kitchenstories.homeconnect.model.programs.*
+
+
 import com.ajnsnewmedia.kitchenstories.homeconnect.sdk.DefaultHomeConnectClient
 import com.ajnsnewmedia.kitchenstories.homeconnect.sdk.HomeConnectAuthorization
 import com.ajnsnewmedia.kitchenstories.homeconnect.sdk.HomeConnectClient
@@ -33,8 +35,9 @@ class MainActivity : AppCompatActivity(), CoroutineScope by MainScope() {
 
     private val homeConnectSecretsStore by lazy { MyTestHomeConnectSecretsStore(applicationContext) }
 
+
     private val baseUrl = "https://api.home-connect.com/"
-    //private val baseUrl = "https://simulator.home-connect.com/"
+    // private val baseUrl = "https://simulator.home-connect.com/"
 
     private lateinit var homeConnectAuthenticateWebview: WebView
     private lateinit var ovenControls: ViewGroup
@@ -131,13 +134,18 @@ class MainActivity : AppCompatActivity(), CoroutineScope by MainScope() {
 
     private fun fetchAppliances() {
         launch {
-            try {
-                val oven = homeConnectClient.getAllHomeAppliances(ofType = HomeApplianceType.Oven)
-                        .firstOrNull()
-                if (oven == null) {
-                    Toast.makeText(this@MainActivity, "No oven found", Toast.LENGTH_LONG).show()
-                } else {
-                    showAvailablePrograms(oven = oven)
+            val oven = homeConnectClient.getAllHomeAppliances(ofType = HomeApplianceType.Oven).firstOrNull()
+            if (oven == null) {
+                Toast.makeText(this@MainActivity, "No oven found", Toast.LENGTH_LONG).show()
+            } else {
+                val availablePrograms = homeConnectClient.getAvailablePrograms(forApplianceId = oven.id, inLocale = "")
+                availablePrograms.forEach { program ->
+                    val programButton = Button(this@MainActivity)
+                    ovenControls.addView(programButton)
+                    programButton.text = program.key
+                    programButton.setOnClickListener {
+                        startProgram(oven, program.key)
+                    }
                 }
             } catch (e:Exception){
                 MaterialAlertDialogBuilder(this@MainActivity)
