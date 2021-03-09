@@ -24,7 +24,7 @@ class AvailableProgramTest {
     """.filter { !it.isWhitespace() }
 
 
-    private fun testJsonWithName(withKey: String, withName: String ) = """
+    private fun testJsonWithName(withKey: String, withName: String) = """
         {
             "key": "$withKey",
             "name": "$withName"
@@ -32,22 +32,32 @@ class AvailableProgramTest {
     """.filter { !it.isWhitespace() }
 
     @Test
-    fun `test without name`(){
-        Assert.assertEquals(adapter.fromJson(testJson("Cooking.Oven.Program.HeatingMode.PreHeating"))?.name, "Pre Heating")
+    fun `test without name`() {
+        Assert.assertEquals(
+            adapter.fromJson(testJson("Cooking.Oven.Program.HeatingMode.PreHeating"))?.name,
+            "Pre Heating"
+        )
     }
 
     @Test
-    fun `test when there is no dot in the key name`(){
+    fun `test when there is no dot in the key name`() {
         Assert.assertEquals(adapter.fromJson(testJson("PreHeating"))?.name, "Pre Heating")
     }
 
     @Test
-    fun `test when there is nothing to convert`(){
+    fun `test when there is nothing to convert`() {
         Assert.assertEquals(adapter.fromJson(testJson("Pre Heating"))?.name, "Pre Heating")
     }
 
     @Test
-    fun `test with name`(){
-        Assert.assertEquals(adapter.fromJson(testJsonWithName("Cooking.Oven.Program.HeatingMode.PreHeating", "something"))?.name, "something")
+    fun `test with name`() {
+        Assert.assertEquals(
+            adapter.fromJson(
+                testJsonWithName(
+                    "Cooking.Oven.Program.HeatingMode.PreHeating",
+                    "something"
+                )
+            )?.name, "something"
+        )
     }
 }

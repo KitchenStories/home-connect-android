@@ -1,50 +1,73 @@
 <?xml version="1.0" encoding="utf-8"?>
-<FrameLayout
-    xmlns:android="http://schemas.android.com/apk/res/android"
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".MainActivity"
-    >
-
-    <WebView
-        android:id="@+id/home_connect_authenticate_webview"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        />
+    tools:context=".MainActivity">
 
     <LinearLayout
         android:id="@+id/oven_controls"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
+        android:layout_height="wrap_content"
         android:orientation="vertical"
-        android:visibility="gone"
-        >
+        android:visibility="gone">
 
         <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            >
-
+            android:layout_height="wrap_content">
+            <Spinner
+                android:id="@+id/locale_spinner"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                />
             <EditText
                 android:id="@+id/temperature_input"
                 android:layout_width="80dp"
                 android:layout_height="wrap_content"
                 android:layout_gravity="center_vertical"
                 android:gravity="end"
-                android:inputType="number"
-                />
+                android:inputType="number" />
 
             <TextView
                 android:id="@+id/temperature_unit"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_gravity="center_vertical"
-                android:text="@string/degree_celsius"
-                />
+                android:text="@string/degree_celsius" />
+
+            <TextView
+                android:id="@+id/temperature_constraints"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_vertical"
+                android:paddingLeft="3dp"
+                android:text="@string/degree_celsius" />
 
         </LinearLayout>
+        <TextView
+            android:id="@+id/constraints_list"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_vertical"
+            android:text="-" />
 
+
+        <ScrollView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+            <LinearLayout
+                android:id="@+id/programs_list"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"></LinearLayout>
+        </ScrollView>
     </LinearLayout>
+
+
+    <WebView
+        android:id="@+id/home_connect_authenticate_webview"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        />
 
 </FrameLayout>

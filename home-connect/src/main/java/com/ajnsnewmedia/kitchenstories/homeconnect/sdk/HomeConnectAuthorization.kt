@@ -71,7 +71,12 @@ class HomeConnectAuthorization {
                 webView.webViewClient = object : WebViewClient() {
                     override fun onPageFinished(view: WebView?, url: String?) {
                         super.onPageFinished(view, url)
-                        if (url != null && url.startsWith("https://apiclient.home-connect.com/o2c.html")) {
+                        if (url == null) {
+                            return
+                        }
+                        val isDefaultAuthCodeUrl = url.startsWith("https://apiclient.home-connect.com/o2c.html")
+                        val isChineseAuthCodeUrl = url.startsWith("https://apiclient.home-connect.cn/o2c.html")
+                        if (isDefaultAuthCodeUrl || isChineseAuthCodeUrl) {
                             val uri = Uri.parse(url)
                             val authorizationCode = uri.parseAuthorizationCode()
                             this@HomeConnectAuthorization.authorizationCode = authorizationCode
@@ -80,7 +85,11 @@ class HomeConnectAuthorization {
                             } else {
                                 val errorDescription = uri.parseErrorDescription()
                                 val error = uri.parseError()
-                                continuation.resumeWithException(HomeConnectError.getExceptionFromError(error, errorDescription, cause = null))
+                                continuation.resumeWithException(HomeConnectError.getExceptionFromError(
+                                        errorString = error,
+                                        errorDescription = errorDescription,
+                                        cause = null,
+                                ))
                             }
                         }
                     }
