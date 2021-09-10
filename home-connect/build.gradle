@@ -1,6 +1,9 @@
 apply plugin: 'com.android.library'
 apply plugin: 'kotlin-android'
 apply plugin: 'kotlin-kapt'
+apply plugin: 'maven-publish'
+
+group = 'com.ajnsnewmedia.kitchenstories.homeconnect'
 
 android {
     compileSdkVersion rootProject.ext.compileSdkVersion
@@ -79,4 +82,17 @@ dependencies {
     // mockito - mocking and stubbing
     testImplementation "com.nhaarman.mockitokotlin2:mockito-kotlin:$mockitoKotlinVersion"
     testImplementation "org.jetbrains.kotlinx:kotlinx-coroutines-test:$coroutinesVersion"
+}
+
+project.afterEvaluate {
+    publishing {
+        publications {
+            release(MavenPublication) {
+                from components.release
+                groupId = 'com.ajnsnewmedia.kitchenstories.homeconnect'
+                artifactId = 'final'
+                version = '0.1.13-alpha'
+            }
+        }
+    }
 }
