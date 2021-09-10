@@ -44,6 +44,7 @@ class MainActivity : AppCompatActivity(), CoroutineScope by MainScope() {
     private val credentials = HomeConnectClientCredentials(
         clientId = BuildConfig.homeConnectClientId,
         clientSecret = BuildConfig.homeConnectClientSecret,
+        scope = "IdentifyAppliance%20Oven"
     )
     private var selectedLocale = ""
 
