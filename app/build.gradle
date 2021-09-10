@@ -35,6 +35,8 @@ android {
         }
         release {
             minifyEnabled true
+            buildConfigField 'String', 'homeConnectClientId', localProperties.getProperty('clientId', '"none"')
+            buildConfigField 'String', 'homeConnectClientSecret', localProperties.getProperty('clientSecret', '"none"')
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
     }
