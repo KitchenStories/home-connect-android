@@ -109,7 +109,10 @@ class HomeConnectAuthorization {
                 } else {
                     val baseUrl = AuthorizationDependencies.baseUrl
                     val credentials = AuthorizationDependencies.credentials
-                    val authUrl = "${baseUrl}security/oauth/authorize?client_id=${credentials.clientId}&response_type=code"
+                    var authUrl = "${baseUrl}security/oauth/authorize?client_id=${credentials.clientId}&response_type=code"
+                    if (!credentials.scope.isNullOrEmpty()) {
+                        authUrl += "&scope=${credentials.scope}"
+                    }
                     webView.loadUrl(authUrl)
                 }
 
