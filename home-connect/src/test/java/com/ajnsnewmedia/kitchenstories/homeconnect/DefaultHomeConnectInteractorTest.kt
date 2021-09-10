@@ -61,10 +61,10 @@ class DefaultHomeConnectInteractorTest {
         whenever(homeConnectApiFactory.getHomeConnectApi()).thenReturn(homeConnectApi)
 
         interactor = DefaultHomeConnectInteractor(
-                homeConnectApiFactory,
-                homeConnectSecretsStore,
-                testErrorHandler,
-                coroutinesTestRule.testDispatcher,
+            homeConnectApiFactory,
+            homeConnectSecretsStore,
+            testErrorHandler,
+            coroutinesTestRule.testDispatcher,
         )
     }
 
@@ -72,7 +72,13 @@ class DefaultHomeConnectInteractorTest {
 
     @Test
     fun `user is authorized when there is an access token in the secrets store`() {
-        whenever(homeConnectSecretsStore.accessToken).thenReturn(HomeConnectAccessToken("token", 100, "refresh_token"))
+        whenever(homeConnectSecretsStore.accessToken).thenReturn(
+            HomeConnectAccessToken(
+                "token",
+                100,
+                "refresh_token"
+            )
+        )
 
         assertTrue(interactor.isAuthorized)
     }
@@ -96,58 +102,95 @@ class DefaultHomeConnectInteractorTest {
 
     @Test
     fun `getAllHomeAppliances without a filter returns all loaded appliances`() = runBlockingTest {
-        whenever(homeConnectApi.getAllHomeAppliances()).thenReturn(HomeConnectApiResponse(HomeAppliancesData(listOf(
-                testHomeAppliance,
-                testHomeAppliance.copy(type = HomeApplianceType.Unknown),
-        ))))
+        whenever(homeConnectApi.getAllHomeAppliances()).thenReturn(
+            HomeConnectApiResponse(
+                HomeAppliancesData(
+                    listOf(
+                        testHomeAppliance,
+                        testHomeAppliance.copy(type = HomeApplianceType.Unknown),
+                    )
+                )
+            )
+        )
 
         val result = interactor.getAllHomeAppliances(ofType = null)
 
-        assertEquals(result, listOf(testHomeAppliance, testHomeAppliance.copy(type = HomeApplianceType.Unknown)))
+        assertEquals(
+            result,
+            listOf(testHomeAppliance, testHomeAppliance.copy(type = HomeApplianceType.Unknown))
+        )
     }
 
     @Test
-    fun `getAllHomeAppliances with a filter returns all loaded appliances of the type of given filter`() = runBlockingTest {
-        whenever(homeConnectApi.getAllHomeAppliances()).thenReturn(HomeConnectApiResponse(HomeAppliancesData(listOf(
-                testHomeAppliance.copy(type = HomeApplianceType.Oven),
-                testHomeAppliance.copy(type = HomeApplianceType.Unknown),
-        ))))
+    fun `getAllHomeAppliances with a filter returns all loaded appliances of the type of given filter`() =
+        runBlockingTest {
+            whenever(homeConnectApi.getAllHomeAppliances()).thenReturn(
+                HomeConnectApiResponse(
+                    HomeAppliancesData(
+                        listOf(
+                            testHomeAppliance.copy(type = HomeApplianceType.Oven),
+                            testHomeAppliance.copy(type = HomeApplianceType.Unknown),
+                        )
+                    )
+                )
+            )
 
-        val result = interactor.getAllHomeAppliances(ofType = HomeApplianceType.Oven)
+            val result = interactor.getAllHomeAppliances(ofType = HomeApplianceType.Oven)
 
-        assertEquals(result, listOf(testHomeAppliance.copy(type = HomeApplianceType.Oven)))
-    }
+            assertEquals(result, listOf(testHomeAppliance.copy(type = HomeApplianceType.Oven)))
+        }
 
     @Test
     fun `getAvailablePrograms returns all loaded programs`() = runBlockingTest {
-        whenever(homeConnectApi.getAvailablePrograms("appliance_id", "en")).thenReturn(HomeConnectApiResponse(AvailableProgramsData(listOf(
-                testAvailableProgram,
-                testAvailableProgram.copy(ProgramKey.PreHeating),
-        ))))
+        whenever(homeConnectApi.getAvailablePrograms("appliance_id", "en")).thenReturn(
+            HomeConnectApiResponse(
+                AvailableProgramsData(
+                    listOf(
+                        testAvailableProgram,
+                        testAvailableProgram.copy(ProgramKey.PreHeating),
+                    )
+                )
+            )
+        )
 
         val result = interactor.getAvailablePrograms(forApplianceId = "appliance_id", "en")
 
-        assertEquals(result, listOf(testAvailableProgram, testAvailableProgram.copy(ProgramKey.PreHeating)))
+        assertEquals(
+            result,
+            listOf(testAvailableProgram, testAvailableProgram.copy(ProgramKey.PreHeating))
+        )
     }
 
     @Test
     fun `startProgram delegates to HomeConnectApi`() = runBlockingTest {
         whenever(homeConnectApi.startProgram(any(), any())).thenReturn(Response.success(null))
 
-        interactor.startProgram(forApplianceId = "appliance_id", program = testStartProgramRequest, safeLocaleString = safeLocaleString)
+        interactor.startProgram(forApplianceId = "appliance_id", program = testStartProgramRequest)
 
-        verify(homeConnectApi).startProgram(forApplianceId = "appliance_id", HomeConnectApiRequest(testStartProgramRequest))
+        verify(homeConnectApi).startProgram(
+            forApplianceId = "appliance_id",
+            HomeConnectApiRequest(testStartProgramRequest)
+        )
     }
 
     @Test
-    fun `startProgram throws unspecified HomeConnectError when response is not successful`() = runBlockingTest {
-        whenever(homeConnectApi.startProgram(any(), any())).thenReturn(Response.error(400, "".toResponseBody()))
+    fun `startProgram throws unspecified HomeConnectError when response is not successful`() =
+        runBlockingTest {
+            whenever(homeConnectApi.startProgram(any(), any())).thenReturn(
+                Response.error(
+                    400,
+                    "".toResponseBody()
+                )
+            )
 
-        verifyThrowingSuspended(action = { interactor.startProgram(forApplianceId = "appliance_id",
-                                                                   program = testStartProgramRequest,
-                                                                   safeLocaleString = safeLocaleString) }) { error ->
-            assertTrue(error is HomeConnectError.StartProgramIssue)
+            verifyThrowingSuspended(action = {
+                interactor.startProgram(
+                    forApplianceId = "appliance_id",
+                    program = testStartProgramRequest,
+                )
+            }) { error ->
+                assertTrue(error is HomeConnectError.StartProgramIssue)
+            }
         }
-    }
 
 }
