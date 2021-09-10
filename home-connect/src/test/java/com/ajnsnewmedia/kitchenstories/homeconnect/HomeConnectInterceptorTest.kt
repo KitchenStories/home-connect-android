@@ -40,7 +40,7 @@ class HomeConnectInterceptorTest {
     private lateinit var client: OkHttpClient
 
     private val testClientCredentials =
-        HomeConnectClientCredentials("testClientId", "testClientSecret")
+        HomeConnectClientCredentials("testClientId", "testClientSecret", "testClientScope")
     private val testAccessToken =
         HomeConnectAccessToken("token", expiresAt = 1_000_000L, "refresh_token")
 
