@@ -1,5 +1,5 @@
 buildscript {
-    ext.kotlin_version = "1.4.0"
+    ext.kotlin_version = "1.5.20"
 
     // see https://github.com/dcendents/android-maven-gradle-plugin/releases
     ext.android_maven_gradle_plugin_version = "2.1"
@@ -11,7 +11,7 @@ buildscript {
         gradlePluginPortal()
     }
     dependencies {
-        classpath 'com.android.tools.build:gradle:4.1.1'
+        classpath 'com.android.tools.build:gradle:7.0.2'
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
         classpath "com.github.dcendents:android-maven-gradle-plugin:$android_maven_gradle_plugin_version"
 
@@ -48,8 +48,8 @@ ext {
     androidMaterialComponentsVersion = "1.2.1"
 
     // Library dependencies
-    coroutinesVersion = "1.4.1"
-    moshiAdapterVersion = "1.11.0"
+    coroutinesVersion = "1.5.1"
+    moshiAdapterVersion = "1.12.0"
     okHttpVersion = "4.9.0"
     retrofitVersion = "2.9.0"
 

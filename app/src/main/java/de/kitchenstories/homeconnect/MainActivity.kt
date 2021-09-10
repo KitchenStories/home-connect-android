@@ -9,15 +9,12 @@ import android.webkit.WebView
 import android.widget.*
 import android.widget.AdapterView.OnItemSelectedListener
 import androidx.annotation.ArrayRes
-import androidx.annotation.IntDef
-import androidx.annotation.IntegerRes
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.isVisible
 import com.ajnsnewmedia.kitchenstories.homeconnect.model.appliances.HomeAppliance
 import com.ajnsnewmedia.kitchenstories.homeconnect.model.appliances.HomeApplianceType
 import com.ajnsnewmedia.kitchenstories.homeconnect.model.auth.HomeConnectClientCredentials
 import com.ajnsnewmedia.kitchenstories.homeconnect.model.programs.*
-
 
 import com.ajnsnewmedia.kitchenstories.homeconnect.sdk.DefaultHomeConnectClient
 import com.ajnsnewmedia.kitchenstories.homeconnect.sdk.HomeConnectAuthorization
@@ -32,9 +29,7 @@ import java.lang.Exception
 
 class MainActivity : AppCompatActivity(), CoroutineScope by MainScope() {
 
-
     private val homeConnectSecretsStore by lazy { MyTestHomeConnectSecretsStore(applicationContext) }
-
 
     private val baseUrl = "https://api.home-connect.com/"
     // private val baseUrl = "https://simulator.home-connect.com/"
@@ -49,6 +44,7 @@ class MainActivity : AppCompatActivity(), CoroutineScope by MainScope() {
     private val credentials = HomeConnectClientCredentials(
         clientId = BuildConfig.homeConnectClientId,
         clientSecret = BuildConfig.homeConnectClientSecret,
+        scope = "IdentifyAppliance%20Oven"
     )
     private var selectedLocale = ""
 
@@ -134,12 +130,23 @@ class MainActivity : AppCompatActivity(), CoroutineScope by MainScope() {
 
     private fun fetchAppliances() {
         launch {
-            val oven = homeConnectClient.getAllHomeAppliances(ofType = HomeApplianceType.Oven).firstOrNull()
+            val oven = homeConnectClient.getAllHomeAppliances(ofType = HomeApplianceType.Oven)
+                .firstOrNull()
             if (oven == null) {
                 Toast.makeText(this@MainActivity, "No oven found", Toast.LENGTH_LONG).show()
             } else {
-                val availablePrograms = homeConnectClient.getAvailablePrograms(forApplianceId = oven.id, inLocale = "")
-                availablePrograms.forEach { program ->
+                val availablePrograms = try {
+                    homeConnectClient.getAvailablePrograms(forApplianceId = oven.id, inLocale = "")
+                } catch (e: Exception) {
+                    MaterialAlertDialogBuilder(this@MainActivity)
+                        .setTitle("Could not fetch appliances")
+                        .setMessage("Error: '$e.message'")
+                        .setPositiveButton("OK") { _, _ -> }
+                        .create()
+                        .show()
+                    null
+                }
+                availablePrograms?.forEach { program ->
                     val programButton = Button(this@MainActivity)
                     ovenControls.addView(programButton)
                     programButton.text = program.key
@@ -147,14 +154,6 @@ class MainActivity : AppCompatActivity(), CoroutineScope by MainScope() {
                         startProgram(oven, program.key)
                     }
                 }
-            } catch (e:Exception){
-                MaterialAlertDialogBuilder(this@MainActivity)
-                        .setTitle("Could not fetch the appliances")
-                        .setMessage("'$e.message'")
-                        .setPositiveButton("OK") { _, _ -> }
-                        .setNeutralButton("Retry") { _, _ -> fetchAppliances() }
-                        .create()
-                        .show()
             }
         }
     }
@@ -169,26 +168,26 @@ class MainActivity : AppCompatActivity(), CoroutineScope by MainScope() {
         launch {
             try {
                 homeConnectClient.startProgram(
-                        forApplianceId = oven.id,
-                        program = StartProgramRequest(
-                                key = program,
-                                options = listOf(
-                                        StartProgramOption(
-                                                key = ProgramOptionKey.SetpointTemperature,
-                                                value = enteredTemperature,
-                                                unit = "°C",
-                                        )
-                                ),
+                    forApplianceId = oven.id,
+                    program = StartProgramRequest(
+                        key = program,
+                        options = listOf(
+                            StartProgramOption(
+                                key = ProgramOptionKey.SetpointTemperature,
+                                value = enteredTemperature,
+                                unit = "°C",
+                            )
                         ),
+                    ),
                 )
-            } catch (e: Exception){
+            } catch (e: Exception) {
                 MaterialAlertDialogBuilder(this@MainActivity)
-                        .setTitle("Could not start the program")
-                        .setMessage("Error: '$e.message'")
-                        .setPositiveButton("OK") { _, _ -> }
-                        .setNeutralButton("Retry") { _, _ -> startProgram(oven, program) }
-                        .create()
-                        .show()
+                    .setTitle("Could not start the program")
+                    .setMessage("Error: '$e.message'")
+                    .setPositiveButton("OK") { _, _ -> }
+                    .setNeutralButton("Retry") { _, _ -> startProgram(oven, program) }
+                    .create()
+                    .show()
             }
 
         }
@@ -196,59 +195,72 @@ class MainActivity : AppCompatActivity(), CoroutineScope by MainScope() {
 
     private fun showAvailablePrograms(oven: HomeAppliance) {
         launch {
-            try{
-                val availablePrograms = homeConnectClient.getAvailablePrograms(forApplianceId = oven.id, inLocale = selectedLocale)
+            try {
+                val availablePrograms = homeConnectClient.getAvailablePrograms(
+                    forApplianceId = oven.id,
+                    inLocale = selectedLocale
+                )
                 addToView(availablePrograms, oven)
-            } catch (e:Exception){
-                Toast.makeText(this@MainActivity, "Error: could not load the programs: ${e.message}", Toast.LENGTH_LONG).show()
+            } catch (e: Exception) {
+                Toast.makeText(
+                    this@MainActivity,
+                    "Error: could not load the programs: ${e.message}",
+                    Toast.LENGTH_LONG
+                ).show()
             }
         }
     }
 
     private fun addToView(availablePrograms: List<AvailableProgram>, oven: HomeAppliance) {
         availablePrograms
-                .sortedBy { it.name }
-                .forEach { program ->
-                    TextView(this@MainActivity).also {
-                        it.text = program.name
-                        programsList.addView(it)
-                    }
-                    val startButton = Button(this@MainActivity).also {
-                        it.text = "Start Program"
-                        it.setOnClickListener {
-                            startProgram(oven, program.key)
-                        }
-                    }
-                    val optionsButton = Button(this@MainActivity).also {
-                        it.text = "See Options"
-                        it.setOnClickListener {
-                            showProgramOptions(ovenId = oven.id, programKey = program.key)
-                        }
-                    }
-                    LinearLayout(this@MainActivity).also {
-                        it.orientation = LinearLayout.HORIZONTAL
-                        it.addView(startButton)
-                        it.addView(optionsButton)
-                        programsList.addView(it)
+            .sortedBy { it.name }
+            .forEach { program ->
+                TextView(this@MainActivity).also {
+                    it.text = program.name
+                    programsList.addView(it)
+                }
+                val startButton = Button(this@MainActivity).also {
+                    it.text = "Start Program"
+                    it.setOnClickListener {
+                        startProgram(oven, program.key)
                     }
                 }
+                val optionsButton = Button(this@MainActivity).also {
+                    it.text = "See Options"
+                    it.setOnClickListener {
+                        showProgramOptions(ovenId = oven.id, programKey = program.key)
+                    }
+                }
+                LinearLayout(this@MainActivity).also {
+                    it.orientation = LinearLayout.HORIZONTAL
+                    it.addView(startButton)
+                    it.addView(optionsButton)
+                    programsList.addView(it)
+                }
+            }
     }
 
     private fun showProgramOptions(ovenId: String, programKey: String) {
         launch {
             try {
                 val availableProgramOptions = homeConnectClient.getAvailableProgramOptions(
-                        forApplianceId = ovenId,
-                        selectedLocale,
-                        forProgramKey = programKey
+                    forApplianceId = ovenId,
+                    selectedLocale,
+                    forProgramKey = programKey
                 )
-                constraintsListTextview.text = "Options: ${availableProgramOptions.asSimpleListString()}"
+                constraintsListTextview.text =
+                    "Options: ${availableProgramOptions.asSimpleListString()}"
 
                 availableProgramOptions.find { it.key.endsWith("SetpointTemperature") }?.let {
-                    temperatureConstraintsTextView.text = "min: ${it.constraints.min} max: ${it.constraints.max}"
+                    temperatureConstraintsTextView.text =
+                        "min: ${it.constraints.min} max: ${it.constraints.max}"
                 }
-            } catch (e:Exception){
-                Toast.makeText(this@MainActivity, "Error: could not load the program options: ${e.message}", Toast.LENGTH_LONG).show()
+            } catch (e: Exception) {
+                Toast.makeText(
+                    this@MainActivity,
+                    "Error: could not load the program options: ${e.message}",
+                    Toast.LENGTH_LONG
+                ).show()
             }
 
         }
@@ -269,9 +281,9 @@ private fun Spinner.onSelectionChange(function: (value: String) -> Unit) {
 
 private fun Spinner.setup(ccontext: Context, @ArrayRes arrayResource: Int) {
     ArrayAdapter.createFromResource(
-            ccontext,
-            arrayResource,
-            android.R.layout.simple_spinner_item
+        ccontext,
+        arrayResource,
+        android.R.layout.simple_spinner_item
     ).also { adapter ->
         // Specify the layout to use when the list of choices appears
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
@@ -281,5 +293,5 @@ private fun Spinner.setup(ccontext: Context, @ArrayRes arrayResource: Int) {
 }
 
 private fun List<ProgramOptions>.asSimpleListString(): String = sortedBy { it.key }
-        .map { it.name ?: it.key.split(".").last() }
-        .joinToString(", ")
+    .map { it.name ?: it.key.split(".").last() }
+    .joinToString(", ")
